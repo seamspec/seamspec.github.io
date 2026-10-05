@@ -1,0 +1,1059 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SeamSpec: executable specs for AI coding agents</title>
+  <meta name="description" content="SeamSpec is an open-source governance layer for AI coding agents. Build first; every seam that works gets a spec: a human-approved, executable invariant enforced by hooks, pre-commit and CI.">
+  <meta name="theme-color" content="#0d1017">
+  <link rel="canonical" href="https://seamspec.github.io/">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://seamspec.github.io/">
+  <meta property="og:title" content="SeamSpec: build first; every seam that works gets a spec">
+  <meta property="og:description" content="Turn working behavior into human-approved, executable invariants for AI coding agents, enforced by editor hooks, git pre-commit and CI.">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="SeamSpec">
+  <meta name="twitter:description" content="Executable specs for AI coding agents. Build first; every seam that works gets a spec.">
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230d1017'/%3E%3Cpath d='M6 22 Q16 4 26 22' fill='none' stroke='%23f2b45a' stroke-width='2.5' stroke-linecap='round' stroke-dasharray='3 3.2'/%3E%3Ccircle cx='16' cy='13' r='3' fill='%2361dcb4'/%3E%3C/svg%3E">
+
+  <!-- Fonts are self-hosted (SIL OFL 1.1, licenses in /fonts). No third-party requests. -->
+  <link rel="preload" href="fonts/bricolage-grotesque-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "SeamSpec",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "macOS, Linux, Windows",
+    "description": "Open-source governance layer for AI coding agents. Build first; every seam that works gets a spec.",
+    "softwareVersion": "0.0.2",
+    "license": "https://www.apache.org/licenses/LICENSE-2.0",
+    "url": "https://seamspec.github.io/",
+    "downloadUrl": "https://pypi.org/project/seamspec/",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+
+  <style>
+    /* ---------- Self-hosted variable fonts (Latin subset) ---------- */
+    @font-face {
+      font-family: "Bricolage Grotesque";
+      src: url("fonts/bricolage-grotesque-latin.woff2") format("woff2");
+      font-weight: 500 800; font-style: normal; font-display: swap;
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+    @font-face {
+      font-family: "Inter";
+      src: url("fonts/inter-latin.woff2") format("woff2");
+      font-weight: 400 600; font-style: normal; font-display: swap;
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("fonts/jetbrains-mono-latin.woff2") format("woff2");
+      font-weight: 400 600; font-style: normal; font-display: swap;
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
+    @layer reset, base, components, utilities;
+
+    /* ---------- Tokens ---------- */
+    :root {
+      color-scheme: dark;
+
+      --ink-950: oklch(0.145 0.014 262);
+      --ink-900: oklch(0.175 0.016 262);
+      --ink-850: oklch(0.205 0.018 262);
+      --ink-800: oklch(0.245 0.02 262);
+      --ink-600: oklch(0.42 0.02 262);
+      --ink-400: oklch(0.64 0.018 262);
+      --ink-300: oklch(0.76 0.014 262);
+      --ink-100: oklch(0.95 0.006 262);
+
+      --thread:  oklch(0.82 0.135 72);   /* amber stitch */
+      --lock:    oklch(0.83 0.13 168);   /* locked / pass */
+      --propose: oklch(0.77 0.12 292);   /* proposed */
+      --fail:    oklch(0.71 0.17 25);    /* regression */
+
+      --text: var(--ink-100);
+      --text-muted: var(--ink-300);
+      --text-faint: var(--ink-400);
+      --surface: color-mix(in oklab, var(--ink-850) 72%, transparent);
+      --surface-solid: var(--ink-900);
+      --border: color-mix(in oklab, var(--ink-100) 9%, transparent);
+      --border-strong: color-mix(in oklab, var(--ink-100) 17%, transparent);
+
+      --font-display: "Bricolage Grotesque", "Inter", system-ui, sans-serif;
+      --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+      --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+      --radius-lg: 1.25rem;
+      --radius: 0.9rem;
+      --radius-sm: 0.55rem;
+      --container: 72rem;
+      --gutter: clamp(1.25rem, 0.5rem + 3vw, 2.5rem);
+      --section-gap: clamp(5rem, 3rem + 7vw, 9rem);
+
+      --shadow-card:
+        0 1px 0 0 color-mix(in oklab, var(--ink-100) 6%, transparent) inset,
+        0 1px 2px oklch(0 0 0 / 0.3),
+        0 12px 32px -12px oklch(0 0 0 / 0.55);
+      --shadow-glow: 0 0 0 1px color-mix(in oklab, var(--thread) 30%, transparent), 0 18px 60px -20px color-mix(in oklab, var(--thread) 45%, transparent);
+
+      --stitch: repeating-linear-gradient(90deg, var(--thread) 0 10px, transparent 0 18px);
+      --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* ---------- Reset ---------- */
+    @layer reset {
+      html, body, h1, h2, h3, p, ol, ul, figure, pre, dl, dd { margin: 0; }
+      ol, ul { padding: 0; list-style: none; }
+      button { font: inherit; color: inherit; }
+      img, svg { display: block; max-inline-size: 100%; }
+      table { border-collapse: collapse; }
+    }
+
+    /* ---------- Base ---------- */
+    @layer base {
+      html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+      @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+      body {
+        min-block-size: 100dvh;
+        background: var(--ink-950);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 1.0625rem;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: clip;
+      }
+
+      h1, h2, h3 { font-family: var(--font-display); line-height: 1.08; letter-spacing: -0.02em; text-wrap: balance; }
+      p { text-wrap: pretty; }
+      a { color: inherit; }
+      code, kbd, pre { font-family: var(--font-mono); }
+      ::selection { background: color-mix(in oklab, var(--thread) 40%, transparent); color: var(--ink-100); }
+      :focus-visible { outline: 2px solid var(--thread); outline-offset: 3px; border-radius: 4px; }
+      html { scrollbar-color: var(--ink-600) var(--ink-950); }
+    }
+
+    /* ---------- Components ---------- */
+    @layer components {
+
+      /* Ambient background */
+      .backdrop {
+        position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
+      }
+      .backdrop__grid {
+        position: absolute; inset: 0;
+        background-image:
+          linear-gradient(color-mix(in oklab, var(--ink-100) 4%, transparent) 1px, transparent 0),
+          linear-gradient(90deg, color-mix(in oklab, var(--ink-100) 4%, transparent) 1px, transparent 0);
+        background-size: 3.5rem 3.5rem;
+        mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 20%, transparent 75%);
+      }
+      .backdrop__glow {
+        position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.55;
+      }
+      .backdrop__glow--a {
+        inline-size: 42rem; block-size: 30rem; inset-block-start: -12rem; inset-inline-start: -10rem;
+        background: radial-gradient(closest-side, color-mix(in oklab, var(--thread) 55%, transparent), transparent);
+      }
+      .backdrop__glow--b {
+        inline-size: 38rem; block-size: 32rem; inset-block-start: -6rem; inset-inline-end: -12rem;
+        background: radial-gradient(closest-side, color-mix(in oklab, var(--lock) 40%, transparent), transparent);
+      }
+      .backdrop__glow--c {
+        inline-size: 50rem; block-size: 30rem; inset-block-start: 55%; inset-inline-start: 30%;
+        background: radial-gradient(closest-side, color-mix(in oklab, var(--propose) 22%, transparent), transparent);
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .backdrop__glow--a { animation: drift 22s ease-in-out infinite alternate; }
+        .backdrop__glow--b { animation: drift 28s ease-in-out infinite alternate-reverse; }
+        @keyframes drift {
+          to { translate: 6rem 3rem; scale: 1.1; }
+        }
+      }
+
+      .container {
+        inline-size: min(100% - 2 * var(--gutter), var(--container));
+        margin-inline: auto;
+      }
+
+      .visually-hidden {
+        position: absolute !important; inline-size: 1px; block-size: 1px; overflow: hidden;
+        clip-path: inset(50%); white-space: nowrap;
+      }
+
+      .skip-link {
+        position: absolute; inset-inline-start: 1rem; inset-block-start: -4rem; z-index: 100;
+        padding: 0.6rem 1rem; border-radius: var(--radius-sm);
+        background: var(--thread); color: var(--ink-950); font-weight: 600; text-decoration: none;
+        &:focus-visible { inset-block-start: 1rem; }
+      }
+
+      /* Nav */
+      .nav {
+        position: sticky; inset-block-start: 0; z-index: 50;
+        border-block-end: 1px solid transparent;
+        transition: background-color 0.3s, border-color 0.3s;
+        background: color-mix(in oklab, var(--ink-950) 55%, transparent);
+        -webkit-backdrop-filter: blur(14px) saturate(140%);
+        backdrop-filter: blur(14px) saturate(140%);
+        &[data-scrolled] { border-block-end-color: var(--border); background: color-mix(in oklab, var(--ink-950) 78%, transparent); }
+      }
+      .nav__inner { display: flex; align-items: center; gap: 1.5rem; min-block-size: 4rem; }
+      .brand {
+        display: inline-flex; align-items: center; gap: 0.6rem;
+        font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; letter-spacing: -0.01em;
+        text-decoration: none;
+      }
+      .brand__mark { inline-size: 1.75rem; block-size: 1.75rem; }
+      .nav__links { display: flex; gap: 0.25rem; margin-inline-start: auto; }
+      .nav__links a {
+        display: inline-flex; align-items: center; min-block-size: 2.25rem; padding-inline: 0.8rem;
+        border-radius: 999px; color: var(--text-muted); text-decoration: none; font-size: 0.925rem;
+        transition: color 0.2s, background-color 0.2s;
+        &:hover { color: var(--text); background: color-mix(in oklab, var(--ink-100) 6%, transparent); }
+      }
+      @media (width < 52rem) { .nav__links .nav__secondary { display: none; } }
+
+      /* Buttons */
+      .btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 0.55rem;
+        min-block-size: 2.9rem; padding-inline: 1.25rem; border-radius: 999px;
+        font-weight: 600; font-size: 0.975rem; text-decoration: none; border: 1px solid transparent;
+        cursor: pointer;
+        transition: transform 0.25s var(--ease-out), box-shadow 0.25s, background-color 0.25s, border-color 0.25s;
+        & svg { inline-size: 1.05em; block-size: 1.05em; }
+      }
+      .btn--primary {
+        color: var(--ink-950);
+        background: linear-gradient(135deg, var(--thread), color-mix(in oklab, var(--thread) 70%, var(--lock)));
+        box-shadow: 0 8px 28px -10px color-mix(in oklab, var(--thread) 70%, transparent);
+        &:hover { transform: translateY(-2px); box-shadow: 0 14px 36px -10px color-mix(in oklab, var(--thread) 80%, transparent); }
+      }
+      .btn--ghost {
+        color: var(--text); background: color-mix(in oklab, var(--ink-100) 4%, transparent); border-color: var(--border-strong);
+        &:hover { transform: translateY(-2px); background: color-mix(in oklab, var(--ink-100) 8%, transparent); }
+      }
+      .btn--soon {
+        color: var(--text-faint); background: transparent; border: 1px dashed var(--border-strong); cursor: default;
+      }
+      .btn--sm { min-block-size: 2.25rem; padding-inline: 0.9rem; font-size: 0.875rem; }
+
+      /* Badge */
+      .badge {
+        display: inline-flex; align-items: center; gap: 0.55rem;
+        padding: 0.35rem 0.85rem 0.35rem 0.6rem; border-radius: 999px;
+        font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.01em; color: var(--text-muted);
+        background: color-mix(in oklab, var(--ink-850) 80%, transparent);
+        border: 1px solid var(--border-strong);
+        & .dot {
+          inline-size: 0.5rem; block-size: 0.5rem; border-radius: 50%; background: var(--thread);
+          box-shadow: 0 0 0 4px color-mix(in oklab, var(--thread) 20%, transparent);
+        }
+        & strong { color: var(--thread); font-weight: 600; }
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .badge .dot { animation: pulse 2.4s ease-in-out infinite; }
+        @keyframes pulse { 50% { box-shadow: 0 0 0 7px color-mix(in oklab, var(--thread) 0%, transparent); } }
+      }
+
+      /* Hero */
+      .hero { padding-block: clamp(3.5rem, 2rem + 6vw, 7rem) var(--section-gap); }
+      .hero__grid {
+        display: grid; gap: clamp(2.5rem, 1rem + 4vw, 4.5rem); align-items: center;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 27rem), 1fr));
+      }
+      .hero h1 {
+        margin-block: 1.4rem 1rem;
+        font-size: clamp(3.2rem, 1.6rem + 6vw, 6rem); font-weight: 800; letter-spacing: -0.045em;
+      }
+      .hero__tagline {
+        font-family: var(--font-display); font-weight: 600;
+        font-size: clamp(1.45rem, 1.05rem + 1.6vw, 2.1rem); line-height: 1.2; letter-spacing: -0.02em;
+        text-wrap: balance;
+      }
+      .grad {
+        background: linear-gradient(100deg, var(--thread) 10%, var(--lock) 90%);
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+      }
+      .hero__lead { margin-block: 1.25rem 2rem; max-inline-size: 36rem; color: var(--text-muted); font-size: 1.1rem; }
+      .hero__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+      .hero__hosts {
+        margin-block-start: 2.25rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.1rem;
+        font-size: 0.85rem; color: var(--text-faint);
+        & span:not(:first-child) { color: var(--text-muted); }
+      }
+
+      /* Copyable command */
+      .cmd {
+        display: inline-flex; align-items: center; gap: 0.75rem;
+        min-block-size: 2.9rem; padding-inline: 1.1rem 0.35rem; border-radius: 999px;
+        background: color-mix(in oklab, var(--ink-900) 85%, transparent);
+        border: 1px solid var(--border-strong);
+        font-family: var(--font-mono); font-size: 0.92rem;
+        & .prompt { color: var(--thread); user-select: none; }
+        & code { color: var(--text); }
+      }
+      .cmd--block { display: flex; box-sizing: border-box; inline-size: 100%; border-radius: var(--radius); min-block-size: 3.5rem; padding-inline-start: 1.25rem; }
+      .cmd--block code { flex: 1; min-inline-size: 0; overflow-x: auto; white-space: nowrap; }
+      .copy {
+        position: relative; display: inline-grid; place-items: center;
+        min-inline-size: 2.3rem; min-block-size: 2.3rem; border-radius: 999px;
+        border: 1px solid var(--border); background: color-mix(in oklab, var(--ink-100) 5%, transparent);
+        color: var(--text-muted); cursor: pointer;
+        transition: color 0.2s, background-color 0.2s, border-color 0.2s, transform 0.2s var(--ease-out);
+        & svg { inline-size: 1rem; block-size: 1rem; grid-area: 1 / 1; transition: opacity 0.2s, scale 0.25s var(--ease-out); }
+        & .ic-check { opacity: 0; scale: 0.5; color: var(--lock); }
+        &:hover { color: var(--text); background: color-mix(in oklab, var(--ink-100) 10%, transparent); }
+        &:active { transform: scale(0.94); }
+        &[data-state="copied"] {
+          border-color: color-mix(in oklab, var(--lock) 50%, transparent);
+          & .ic-copy { opacity: 0; scale: 0.5; }
+          & .ic-check { opacity: 1; scale: 1; }
+        }
+      }
+      .cmd--block .copy { border-radius: var(--radius-sm); min-inline-size: 2.6rem; min-block-size: 2.6rem; }
+
+      /* Terminal */
+      .term {
+        position: relative; border-radius: var(--radius-lg);
+        background: linear-gradient(180deg, color-mix(in oklab, var(--ink-850) 92%, transparent), color-mix(in oklab, var(--ink-900) 96%, transparent));
+        border: 1px solid var(--border-strong);
+        box-shadow: var(--shadow-card), 0 40px 80px -30px oklch(0 0 0 / 0.7);
+        overflow: hidden; isolation: isolate;
+        &::before {
+          content: ""; position: absolute; inset-inline: 10%; inset-block-start: 0; block-size: 1px; z-index: 1;
+          background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--thread) 70%, transparent), transparent);
+        }
+      }
+      .term__bar {
+        display: flex; align-items: center; gap: 0.5rem; padding: 0.85rem 1rem;
+        border-block-end: 1px solid var(--border);
+        font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-faint);
+        & i { inline-size: 0.7rem; block-size: 0.7rem; border-radius: 50%; background: var(--ink-600); }
+        & i:nth-child(1) { background: color-mix(in oklab, var(--fail) 75%, var(--ink-600)); }
+        & i:nth-child(2) { background: color-mix(in oklab, var(--thread) 75%, var(--ink-600)); }
+        & i:nth-child(3) { background: color-mix(in oklab, var(--lock) 75%, var(--ink-600)); }
+        & span { margin-inline-start: 0.5rem; }
+        & .tag { margin-inline-start: auto; padding: 0.1rem 0.5rem; border-radius: 999px; border: 1px solid var(--border); }
+      }
+      .term__body {
+        --lines: 12;
+        padding: 1.1rem 1.25rem 1.3rem;
+        font-size: clamp(0.72rem, 0.66rem + 0.25vw, 0.84rem); line-height: 1.75;
+        min-block-size: calc(var(--lines) * 1lh + 2.4rem);
+        overflow-x: auto; white-space: pre;
+      }
+      .ln { display: block; min-block-size: 1lh; }
+      .ln .pfx { display: inline-block; min-inline-size: 8.5ch; color: var(--text-faint); user-select: none; }
+      .ln--you .pfx { color: var(--thread); }
+      .ln--you .txt { color: var(--text); }
+      .ln--agent .pfx { color: var(--propose); }
+      .ln--agent .txt { color: var(--text-muted); }
+      .ln--cmd .pfx { color: var(--thread); }
+      .ln--cmd .txt { color: var(--text); font-weight: 600; }
+      .ln--ok .txt { color: var(--lock); }
+      .ln--proposed .txt { color: var(--propose); }
+      .ln--locked .txt { color: var(--lock); font-weight: 600; }
+      .ln--plain .txt { color: var(--text-muted); }
+      .ln--dim .txt { color: var(--ink-600); font-style: italic; }
+      .ln--fail .txt { color: var(--fail); font-weight: 600; }
+      .ln--failsub .txt { color: color-mix(in oklab, var(--fail) 70%, var(--text-muted)); }
+      .term__body[data-typing] .ln:last-child .txt::after,
+      .term__body[data-idle] .ln:last-child .txt::after {
+        content: ""; display: inline-block; inline-size: 0.55em; block-size: 1.1em; margin-inline-start: 2px;
+        vertical-align: -0.2em; background: var(--thread);
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .term__body[data-idle] .ln:last-child .txt::after { animation: blink 1s steps(1) infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+        .ln { animation: line-in 0.35s var(--ease-out) both; }
+        @keyframes line-in { from { opacity: 0; translate: 0 0.3em; } }
+      }
+      .term__caption { margin-block-start: 0.9rem; font-size: 0.8rem; color: var(--text-faint); text-align: center; }
+
+      /* Stitched divider */
+      .seam {
+        position: relative; block-size: 2px; overflow: hidden; opacity: 0.45;
+        mask-image: linear-gradient(90deg, transparent, black 15%, black 85%, transparent);
+        &::before { content: ""; position: absolute; inset-block: 0; inset-inline: -18px 0; background: var(--stitch); }
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .seam::before { animation: march 1.2s linear infinite; }
+        @keyframes march { to { translate: 18px 0; } }
+      }
+
+      /* Sections */
+      .section { padding-block: var(--section-gap); }
+      .section__head { max-inline-size: 44rem; margin-block-end: clamp(2.5rem, 1.5rem + 3vw, 4rem); }
+      .section__head--center { margin-inline: auto; text-align: center; }
+      .eyebrow {
+        display: inline-flex; align-items: center; gap: 0.6rem; margin-block-end: 1rem;
+        font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--thread);
+        &::before { content: ""; inline-size: 1.5rem; block-size: 2px; background: var(--stitch); background-size: 9px 2px; }
+      }
+      .section h2 { font-size: clamp(2rem, 1.3rem + 2.6vw, 3.25rem); font-weight: 700; }
+      .section__head p { margin-block-start: 1.1rem; color: var(--text-muted); font-size: 1.1rem; }
+
+      /* Flow: vibe -> lock -> enforced */
+      .flow { container-type: inline-size; }
+      .flow__list {
+        position: relative; display: grid; gap: 1.25rem;
+        grid-template-columns: 1fr;
+      }
+      .flow__list::before {
+        content: ""; position: absolute; z-index: 0;
+        inset-block: 2.6rem 2.6rem; inset-inline-start: 2.35rem; inline-size: 2px;
+        background: repeating-linear-gradient(180deg, var(--thread) 0 10px, transparent 0 18px);
+        opacity: 0.5;
+      }
+      @container (width >= 50rem) {
+        .flow__list { grid-template-columns: repeat(3, 1fr); }
+        .flow__list::before {
+          inset-block: 2.35rem auto; inset-inline: 2.6rem; inline-size: auto; block-size: 2px;
+          background: var(--stitch);
+        }
+      }
+      .step {
+        position: relative; z-index: 1; padding: 1.6rem 1.6rem 1.75rem;
+        border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--border);
+        box-shadow: var(--shadow-card);
+        -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+        transition: transform 0.35s var(--ease-out), border-color 0.35s, box-shadow 0.35s;
+        &:hover { transform: translateY(-4px); border-color: color-mix(in oklab, var(--step-color) 45%, transparent); box-shadow: var(--shadow-card), 0 24px 60px -28px color-mix(in oklab, var(--step-color) 60%, transparent); }
+      }
+      .step--vibe { --step-color: var(--propose); }
+      .step--lock { --step-color: var(--thread); }
+      .step--enforce { --step-color: var(--lock); }
+      .step__num {
+        display: grid; place-items: center; inline-size: 1.6rem; block-size: 1.6rem; margin-block-end: 1.25rem;
+        border-radius: 50%; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 600;
+        color: var(--ink-950); background: var(--step-color);
+        box-shadow: 0 0 0 6px var(--ink-950), 0 0 0 7px color-mix(in oklab, var(--step-color) 40%, transparent);
+      }
+      .step h3 { display: flex; align-items: baseline; gap: 0.6rem; font-size: 1.6rem; font-weight: 700; }
+      .step h3 small { font-family: var(--font-mono); font-size: 0.75rem; font-weight: 400; letter-spacing: 0; color: var(--step-color); }
+      .step p { margin-block-start: 0.75rem; color: var(--text-muted); font-size: 0.98rem; }
+      .chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-block-start: 1.25rem; }
+      .chip {
+        padding: 0.2rem 0.6rem; border-radius: 999px; font-family: var(--font-mono); font-size: 0.74rem;
+        color: var(--text-muted); background: color-mix(in oklab, var(--ink-100) 5%, transparent); border: 1px solid var(--border);
+      }
+
+      /* Ledger cards */
+      .ledger { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); }
+      .card {
+        padding: 1.75rem; border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--border);
+        box-shadow: var(--shadow-card);
+        transition: transform 0.35s var(--ease-out), border-color 0.35s;
+        &:hover { transform: translateY(-3px); border-color: var(--border-strong); }
+      }
+      .card__icon {
+        display: grid; place-items: center; inline-size: 2.75rem; block-size: 2.75rem; margin-block-end: 1.25rem;
+        border-radius: 0.8rem; color: var(--accent);
+        background: color-mix(in oklab, var(--accent) 12%, transparent);
+        border: 1px solid color-mix(in oklab, var(--accent) 30%, transparent);
+        & svg { inline-size: 1.35rem; block-size: 1.35rem; }
+      }
+      .card h3 { font-size: 1.3rem; font-weight: 700; }
+      .card p { margin-block-start: 0.6rem; color: var(--text-muted); font-size: 0.98rem; }
+      .card code { font-size: 0.85em; color: var(--accent); }
+
+      /* Gates */
+      .gates { display: grid; gap: clamp(2rem, 1rem + 4vw, 4rem); grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); align-items: start; }
+      .gates__list { display: grid; gap: 0.6rem; counter-reset: gate; }
+      .gate {
+        display: grid; grid-template-columns: auto 1fr auto; gap: 0.25rem 1rem; align-items: center;
+        padding: 1rem 1.15rem; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--border);
+        transition: border-color 0.3s, background-color 0.3s;
+        &:hover { border-color: var(--border-strong); background: color-mix(in oklab, var(--ink-800) 70%, transparent); }
+      }
+      .gate__n { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-faint); }
+      .gate__name { font-weight: 600; }
+      .gate__where { grid-column: 2; font-size: 0.85rem; color: var(--text-faint); }
+      .gate__strength {
+        grid-row: 1 / span 2; grid-column: 3; justify-self: end;
+        display: flex; flex-direction: column; align-items: end; gap: 0.35rem;
+        font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); white-space: nowrap;
+      }
+      .meter { display: flex; gap: 3px; }
+      .meter i { inline-size: 0.9rem; block-size: 0.3rem; border-radius: 2px; background: var(--ink-800); }
+      .meter[data-level="1"] i:nth-child(-n+1),
+      .meter[data-level="2"] i:nth-child(-n+2),
+      .meter[data-level="3"] i:nth-child(-n+3),
+      .meter[data-level="4"] i:nth-child(-n+4),
+      .meter[data-level="5"] i:nth-child(-n+5) { background: var(--meter-color, var(--lock)); }
+      .gate--wall { border-color: color-mix(in oklab, var(--lock) 28%, transparent); }
+      .gate--soft .meter { --meter-color: var(--ink-400); }
+      .gates__note {
+        margin-block-start: 1.5rem; padding: 1.1rem 1.25rem; border-radius: var(--radius);
+        border: 1px dashed color-mix(in oklab, var(--thread) 35%, transparent);
+        background: color-mix(in oklab, var(--thread) 5%, transparent);
+        font-size: 0.93rem; color: var(--text-muted);
+        & strong { color: var(--text); }
+      }
+      .principles { display: grid; gap: 1.5rem; }
+      .principle h3 { font-size: 1.2rem; font-weight: 700; display: flex; gap: 0.75rem; align-items: baseline; }
+      .principle h3::before { content: ""; flex: none; inline-size: 0.55rem; block-size: 0.55rem; border-radius: 2px; background: var(--thread); translate: 0 -0.15em; rotate: 45deg; }
+      .principle p { margin-block-start: 0.4rem; padding-inline-start: 1.3rem; color: var(--text-muted); font-size: 0.98rem; }
+
+      /* Compare table */
+      .compare {
+        border-radius: var(--radius-lg); border: 1px solid var(--border); background: var(--surface);
+        box-shadow: var(--shadow-card); overflow: hidden;
+      }
+      .compare__scroll { overflow-x: auto; }
+      .compare table { inline-size: 100%; min-inline-size: 40rem; font-size: 0.97rem; }
+      .compare th, .compare td { padding: 1.05rem 1.4rem; text-align: start; vertical-align: top; }
+      .compare thead th {
+        font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em;
+        border-block-end: 1px solid var(--border-strong); background: color-mix(in oklab, var(--ink-800) 50%, transparent);
+      }
+      .compare thead th small { display: block; margin-block-start: 0.2rem; font-family: var(--font-body); font-size: 0.78rem; font-weight: 400; color: var(--text-faint); letter-spacing: 0; }
+      .compare tbody tr:not(:last-child) > * { border-block-end: 1px solid var(--border); }
+      .compare tbody th { inline-size: 24%; font-weight: 500; color: var(--text-faint); font-size: 0.9rem; }
+      .compare td:nth-child(2) { color: var(--text-muted); }
+      .compare td:nth-child(3), .compare thead th:nth-child(3) {
+        background: linear-gradient(90deg, color-mix(in oklab, var(--thread) 7%, transparent), color-mix(in oklab, var(--lock) 5%, transparent));
+      }
+      .compare thead th:nth-child(3) { color: var(--thread); }
+      .compare td:nth-child(3) { color: var(--text); }
+      @media (width < 44rem) {
+        .compare table { min-inline-size: 0; font-size: 0.92rem; }
+        .compare tr { display: grid; grid-template-columns: 1fr 1fr; }
+        .compare thead td { display: none; }
+        .compare th, .compare td { padding: 0.85rem 1rem; }
+        .compare tbody th {
+          grid-column: 1 / -1; inline-size: auto; padding-block-end: 0.15rem;
+          font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em;
+        }
+        .compare tbody tr:not(:last-child) > th { border-block-end: 0; }
+        .compare tbody tr > td { padding-block-start: 0.4rem; }
+        .compare tbody tr > th { background: transparent; }
+      }
+      .compare__note { margin-block-start: 0.9rem; text-align: center; font-size: 0.85rem; color: var(--text-faint); }
+      .tradeoff {
+        display: flex; gap: 1rem; margin-block-start: 1.5rem; padding: 1.25rem 1.4rem; border-radius: var(--radius);
+        background: color-mix(in oklab, var(--propose) 7%, transparent); border: 1px solid color-mix(in oklab, var(--propose) 25%, transparent);
+        color: var(--text-muted); font-size: 0.97rem;
+        & svg { flex: none; inline-size: 1.3rem; block-size: 1.3rem; color: var(--propose); margin-block-start: 0.15rem; }
+        & strong { color: var(--text); }
+      }
+
+      /* Install */
+      .install {
+        position: relative; display: grid; gap: clamp(2rem, 1rem + 3vw, 3.5rem);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+        padding: clamp(1.75rem, 1rem + 3vw, 3.25rem); border-radius: calc(var(--radius-lg) + 0.5rem);
+        background:
+          radial-gradient(60% 80% at 0% 0%, color-mix(in oklab, var(--thread) 12%, transparent), transparent 70%),
+          radial-gradient(50% 70% at 100% 100%, color-mix(in oklab, var(--lock) 10%, transparent), transparent 70%),
+          var(--surface-solid);
+        border: 1px solid var(--border-strong); box-shadow: var(--shadow-card);
+        overflow: hidden;
+      }
+      .install > * { min-inline-size: 0; }
+      .install h2 { font-size: clamp(2rem, 1.3rem + 2.4vw, 3rem); font-weight: 700; }
+      .install__intro p { margin-block-start: 1rem; color: var(--text-muted); }
+      .install__links { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-block-start: 1.75rem; }
+      .install__steps { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; align-content: start; }
+      .install__label { display: block; margin-block-end: 0.5rem; font-size: 0.82rem; color: var(--text-faint); font-family: var(--font-mono); }
+      .install__alt { margin-block-start: 0.55rem; font-size: 0.85rem; color: var(--text-faint); & code { color: var(--text-muted); } }
+      .output {
+        padding: 1rem 1.25rem; border-radius: var(--radius); background: color-mix(in oklab, var(--ink-950) 70%, transparent);
+        border: 1px solid var(--border); font-size: 0.8rem; line-height: 1.7; color: var(--text-muted);
+        overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere;
+        & b { color: var(--lock); font-weight: 600; }
+      }
+      .roadmap { display: grid; gap: 0.45rem; margin-block-start: 0.5rem; font-size: 0.9rem; color: var(--text-muted); }
+      .roadmap li { position: relative; padding-inline-start: 1.1rem; }
+      .roadmap li::before { content: ""; position: absolute; inset-inline-start: 0; inset-block-start: 0.55em; inline-size: 0.45rem; block-size: 0.45rem; border-radius: 50%; border: 1.5px solid var(--thread); }
+      .roadmap li[data-done]::before { background: var(--lock); border-color: var(--lock); }
+
+      /* Footer */
+      .footer { padding-block: 3rem 3.5rem; color: var(--text-faint); font-size: 0.9rem; }
+      .footer__inner { display: flex; flex-wrap: wrap; gap: 1.25rem 2rem; align-items: center; justify-content: space-between; margin-block-start: 3rem; }
+      .footer__links { display: flex; flex-wrap: wrap; gap: 1.25rem; }
+      .footer a { color: var(--text-muted); text-decoration-color: var(--border-strong); text-underline-offset: 3px; &:hover { color: var(--text); } }
+      .footer em { color: var(--text-muted); }
+
+      /* Scroll reveal (progressive enhancement; decorative so no JS fallback) */
+      @media (prefers-reduced-motion: no-preference) {
+        @supports ((animation-timeline: view()) and (animation-range: entry)) {
+          @keyframes reveal { from { opacity: 0; translate: 0 2rem; } }
+          .reveal {
+            animation: reveal linear both;
+            animation-timeline: view();
+            animation-range: entry 0% entry 55%;
+          }
+        }
+        /* Hero load-in */
+        @keyframes rise { from { opacity: 0; translate: 0 1.25rem; } }
+        .hero__copy > * { animation: rise 0.8s var(--ease-out) both; }
+        .hero__copy > :nth-child(2) { animation-delay: 0.06s; }
+        .hero__copy > :nth-child(3) { animation-delay: 0.12s; }
+        .hero__copy > :nth-child(4) { animation-delay: 0.18s; }
+        .hero__copy > :nth-child(5) { animation-delay: 0.24s; }
+        .hero__copy > :nth-child(6) { animation-delay: 0.3s; }
+        .hero__visual { animation: rise 1s 0.25s var(--ease-out) both; }
+      }
+
+      @media (forced-colors: active) {
+        .btn, .cmd, .step, .card, .gate, .compare, .install, .term { border: 1px solid CanvasText; }
+        .grad { color: CanvasText; background: none; }
+        .seam, .flow__list::before { background: CanvasText; }
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <div class="backdrop" aria-hidden="true">
+    <div class="backdrop__grid"></div>
+    <div class="backdrop__glow backdrop__glow--a"></div>
+    <div class="backdrop__glow backdrop__glow--b"></div>
+    <div class="backdrop__glow backdrop__glow--c"></div>
+  </div>
+
+  <header class="nav" id="site-nav">
+    <div class="container nav__inner">
+      <a class="brand" href="#top" id="nav-brand" aria-label="SeamSpec home">
+        <svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true">
+          <rect width="32" height="32" rx="8" fill="oklch(0.205 0.018 262)" stroke="oklch(0.95 0.006 262 / 0.15)"/>
+          <path d="M6 22 Q16 4 26 22" fill="none" stroke="oklch(0.82 0.135 72)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="3 3.2"/>
+          <circle cx="16" cy="13" r="3" fill="oklch(0.83 0.13 168)"/>
+        </svg>
+        SeamSpec
+      </a>
+      <nav class="nav__links" aria-label="Primary">
+        <a href="#how" id="nav-how" class="nav__secondary">How it works</a>
+        <a href="#enforcement" id="nav-enforcement" class="nav__secondary">Enforcement</a>
+        <a href="#compare" id="nav-compare" class="nav__secondary">vs spec-first</a>
+        <a href="#install" id="nav-install">Install</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- Hero -->
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div class="container hero__grid">
+        <div class="hero__copy">
+          <p class="badge" id="hero-badge"><span class="dot" aria-hidden="true"></span><strong>v0.0.2</strong> pre-release · Apache-2.0</p>
+          <h1 id="hero-title">SeamSpec</h1>
+          <p class="hero__tagline">Build first; every seam that works <span class="grad">gets a spec.</span></p>
+          <p class="hero__lead">
+            An open-source governance layer for AI coding agents. When you and your agent get something working,
+            SeamSpec turns it into a small, human-approved, executable invariant, then blocks anything that breaks it.
+          </p>
+          <div class="hero__actions">
+            <div class="cmd" id="hero-cmd">
+              <span class="prompt" aria-hidden="true">$</span>
+              <code id="hero-cmd-text">uv tool install seamspec</code>
+              <button class="copy" type="button" id="hero-copy-btn" data-copy="uv tool install seamspec" aria-label="Copy install command">
+                <svg class="ic-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+                <svg class="ic-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+              </button>
+            </div>
+            <a class="btn btn--ghost" id="hero-how-link" href="#how">
+              How it works
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+            </a>
+          </div>
+          <p class="hero__hosts" id="hero-hosts">
+            <span>Built for</span><span>Claude Code</span><span>VS Code Copilot</span><span>Cursor</span><span>any MCP client</span>
+          </p>
+        </div>
+
+        <figure class="hero__visual" id="hero-terminal">
+          <div class="term">
+            <div class="term__bar" aria-hidden="true">
+              <i></i><i></i><i></i><span>~/app · agent session</span><span class="tag">preview</span>
+            </div>
+            <pre class="term__body" id="term-body" aria-hidden="true"></pre>
+          </div>
+          <figcaption class="term__caption">
+            Illustration of the planned workflow: a working change is proposed as an invariant, approved with
+            <code>seamspec review</code>, then a later regression is blocked before the agent can finish.
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <div class="container"><div class="seam" aria-hidden="true"></div></div>
+
+    <!-- How it works -->
+    <section class="section flow" id="how" aria-labelledby="how-title">
+      <div class="container">
+        <header class="section__head reveal">
+          <p class="eyebrow">How it works</p>
+          <h2 id="how-title">Vibe. Lock. Enforced.</h2>
+          <p>
+            Long agent sessions hit an entropy wall: earlier decisions quietly erode, fixes reintroduce old bugs,
+            failed approaches get retried. SeamSpec lets the spec harden behind you, one working seam at a time.
+          </p>
+        </header>
+
+        <ol class="flow__list">
+          <li class="step step--vibe reveal" id="step-vibe">
+            <span class="step__num" aria-hidden="true">1</span>
+            <h3>Vibe <small>build freely</small></h3>
+            <p>Build with your agent the way you already do. No upfront spec, no ceremony. SeamSpec stays out of the way while you explore.</p>
+            <div class="chips"><span class="chip">no spec-first step</span><span class="chip">keep your flow</span></div>
+          </li>
+          <li class="step step--lock reveal" id="step-lock">
+            <span class="step__num" aria-hidden="true">2</span>
+            <h3>Lock <small>capture what works</small></h3>
+            <p>When a behavior works, the agent proposes an invariant backed by a test that already passes. You approve in batches with one keystroke.</p>
+            <div class="chips"><span class="chip">seamspec review</span><span class="chip">human-approved</span></div>
+          </li>
+          <li class="step step--enforce reveal" id="step-enforce">
+            <span class="step__num" aria-hidden="true">3</span>
+            <h3>Enforced <small>never silently break</small></h3>
+            <p>Locked invariants are checked by editor hooks while the agent works, by git pre-commit, and in CI. Regressions get blocked, not discovered later.</p>
+            <div class="chips"><span class="chip">hooks</span><span class="chip">pre-commit</span><span class="chip">CI</span></div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Ledger -->
+    <section class="section" id="ledger" aria-labelledby="ledger-title" style="padding-block-start: 0">
+      <div class="container">
+        <header class="section__head reveal">
+          <p class="eyebrow">A living ledger</p>
+          <h2 id="ledger-title">Memory your agent can't forget.</h2>
+          <p>Plain files in your repo, one record per file, reviewable in pull requests. No chat history required.</p>
+        </header>
+        <div class="ledger">
+          <article class="card reveal" id="card-invariants" style="--accent: var(--lock)">
+            <div class="card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            </div>
+            <h3>Invariants</h3>
+            <p>Behavioral rules, each backed by an executable test and scoped to the files it governs. Changing one on purpose means an explicit <code>supersede</code>.</p>
+          </article>
+          <article class="card reveal" id="card-deadends" style="--accent: var(--fail)">
+            <div class="card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>
+            </div>
+            <h3>Dead ends</h3>
+            <p>Approaches that were tried and failed, with the symptom. The agent records them directly, so it stops retrying what already didn't work.</p>
+          </article>
+          <article class="card reveal" id="card-decisions" style="--accent: var(--propose)">
+            <div class="card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>
+            </div>
+            <h3>Decisions</h3>
+            <p>The <em>why</em> behind each invariant, as lightweight ADRs. Future sessions, and future teammates, inherit the reasoning, not just the rule.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <div class="container"><div class="seam" aria-hidden="true"></div></div>
+
+    <!-- Enforcement -->
+    <section class="section" id="enforcement" aria-labelledby="enforcement-title">
+      <div class="container">
+        <header class="section__head reveal">
+          <p class="eyebrow">Enforcement</p>
+          <h2 id="enforcement-title">Enforce outcomes, not prompts.</h2>
+          <p>Agents can change files in many ways. The gates that matter check results (tests pass, hashes match) regardless of how the change was made.</p>
+        </header>
+        <div class="gates">
+          <div class="reveal">
+            <ol class="gates__list" id="gates-list">
+              <li class="gate gate--soft">
+                <span class="gate__n">01</span>
+                <span class="gate__name">Context</span>
+                <span class="gate__where">Constraints served to the agent via MCP or CLI</span>
+                <span class="gate__strength">soft<span class="meter" data-level="1" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></span>
+              </li>
+              <li class="gate">
+                <span class="gate__n">02</span>
+                <span class="gate__name">Pre-edit gate</span>
+                <span class="gate__where">Editor hook denies once, with the constraints in the reason</span>
+                <span class="gate__strength">early warning<span class="meter" data-level="2" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></span>
+              </li>
+              <li class="gate gate--wall">
+                <span class="gate__n">03</span>
+                <span class="gate__name">Completion gate</span>
+                <span class="gate__where">The agent can't finish while a locked invariant fails</span>
+                <span class="gate__strength">hard<span class="meter" data-level="3" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></span>
+              </li>
+              <li class="gate gate--wall">
+                <span class="gate__n">04</span>
+                <span class="gate__name">git pre-commit</span>
+                <span class="gate__where">Runs locked invariants before every commit</span>
+                <span class="gate__strength">hard<span class="meter" data-level="4" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></span>
+              </li>
+              <li class="gate gate--wall">
+                <span class="gate__n">05</span>
+                <span class="gate__name">CI</span>
+                <span class="gate__where">Full verification and ledger integrity on every push</span>
+                <span class="gate__strength">unskippable<span class="meter" data-level="5" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></span>
+              </li>
+            </ol>
+            <p class="gates__note"><strong>Honest by design.</strong> Every capability is labeled with its real enforcement strength per host. Claude Code gets the full set; other hosts get what their hook APIs actually support, and pre-commit and CI work everywhere.</p>
+          </div>
+          <div class="principles reveal">
+            <div class="principle">
+              <h3>Asymmetric trust</h3>
+              <p>Anything that constrains the future (an invariant) needs your approval. Anything that only warns (a dead end) the agent can record itself.</p>
+            </div>
+            <div class="principle">
+              <h3>Model-free core</h3>
+              <p>SeamSpec never calls an LLM. The agent already in your session does the language work; SeamSpec validates, stores, verifies and enforces.</p>
+            </div>
+            <div class="principle">
+              <h3>Fail open in-session, fail closed at the gate</h3>
+              <p>A crashing hook won't brick your agent. CI is the uncompromising backstop.</p>
+            </div>
+            <div class="principle">
+              <h3>Any test runner</h3>
+              <p>Presets for pytest, vitest, jest, go test and cargo, plus a custom runner for everything else.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="container"><div class="seam" aria-hidden="true"></div></div>
+
+    <!-- Compare -->
+    <section class="section" id="compare" aria-labelledby="compare-title">
+      <div class="container">
+        <header class="section__head section__head--center reveal">
+          <p class="eyebrow">vs spec-first</p>
+          <h2 id="compare-title">Specify, then build? Or build, and let the spec harden behind you.</h2>
+          <p>Tools such as Spec Kit, Kiro and OpenSpec take a spec-first approach: agree on the spec, then build to it. SeamSpec works the other way round: build, then capture what works as a spec.</p>
+        </header>
+        <div class="compare reveal" id="compare-table">
+          <div class="compare__scroll">
+            <table>
+              <caption class="visually-hidden">Comparison of the spec-first and build-first approaches</caption>
+              <thead>
+                <tr>
+                  <td></td>
+                  <th scope="col">Spec-first<small>approach</small></th>
+                  <th scope="col">SeamSpec<small>build-first</small></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">When the spec is written</th><td>Before code, describing intended behavior</td><td>After code works, recording proven behavior</td></tr>
+                <tr><th scope="row">What the spec is</th><td>Requirements, design and tasks, mostly in prose</td><td>Small invariants, each backed by a test that already passes</td></tr>
+                <tr><th scope="row">Where the tests come from</th><td>Planned from the spec, written during implementation</td><td>Captured from behavior you have already seen work</td></tr>
+                <tr><th scope="row">When you review</th><td>Before implementation, on the plan</td><td>After verification, on each proposed rule, in batches</td></tr>
+                <tr><th scope="row">Day-to-day flow</th><td>Agree on the spec, then build to it</td><td>Build freely, then lock in what works</td></tr>
+                <tr><th scope="row">Best suited to</th><td>Features where the design should be agreed up front</td><td>Exploratory work where you find the design by building</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <p class="compare__note reveal" id="compare-note">This compares two approaches, not individual tools. Spec-first tools differ, and several also run tests, hooks or checks of their own.</p>
+        <p class="tradeoff reveal" id="compare-tradeoff">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+          <span><strong>The honest trade-off:</strong> SeamSpec prevents regressions, not bad designs. An up-front spec review can catch a wrong architecture before code exists; SeamSpec makes sure you never silently break what already works. The two approaches are complementary, and you can use both.</span>
+        </p>
+      </div>
+    </section>
+
+    <!-- Install -->
+    <section class="section" id="install" aria-labelledby="install-title" style="padding-block-start: 0">
+      <div class="container">
+        <div class="install reveal">
+          <div class="install__intro">
+            <p class="eyebrow">Install</p>
+            <h2 id="install-title">Claim your seat early.</h2>
+            <p>
+              SeamSpec is in pre-release. Today's package reserves the name and ships a placeholder CLI;
+              the first working release is under active development.
+            </p>
+            <ul class="roadmap" aria-label="Roadmap">
+              <li data-done>Package name and CLI command reserved</li>
+              <li>First release: Claude Code, pytest, git pre-commit and <code>seamspec review</code></li>
+              <li>More hosts and runners, CI workflow, public repository</li>
+            </ul>
+            <div class="install__links">
+              <a class="btn btn--primary" id="install-pypi-link" href="https://pypi.org/project/seamspec/" rel="noopener">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.3 7 12 12l8.7-5M12 22V12"/></svg>
+                View on PyPI
+              </a>
+              <span class="btn btn--soon" id="install-github-soon" aria-disabled="true">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02a9.58 9.58 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2z"/></svg>
+                GitHub: coming soon
+              </span>
+            </div>
+          </div>
+
+          <div class="install__steps">
+            <div>
+              <span class="install__label" id="install-label">1 · install the CLI</span>
+              <div class="cmd cmd--block" id="install-cmd">
+                <span class="prompt" aria-hidden="true">$</span>
+                <code>uv tool install seamspec</code>
+                <button class="copy" type="button" id="install-copy-btn" data-copy="uv tool install seamspec" aria-label="Copy install command">
+                  <svg class="ic-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+                  <svg class="ic-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                </button>
+              </div>
+              <p class="install__alt">or <code>pipx install seamspec</code> · requires Python 3.11+</p>
+            </div>
+            <div>
+              <span class="install__label">2 · say hello</span>
+              <pre class="output" id="install-output"><span style="color: var(--thread)">$</span> seamspec
+<b>seamspec 0.0.2</b> (pre-release)
+Executable specs for AI coding agents. Build first; every seam that works gets a spec.
+Under active development: https://seamspec.github.io</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer" id="site-footer">
+    <div class="container">
+      <div class="seam" aria-hidden="true"></div>
+      <div class="footer__inner">
+        <p>
+          The name nods to Michael Feathers' <em>seams</em>, from <em>Working Effectively with Legacy Code</em>:
+          places where code can be put under test without rewriting it.
+        </p>
+        <div class="footer__links">
+          <a href="https://pypi.org/project/seamspec/" id="footer-pypi" rel="noopener">PyPI</a>
+          <a href="https://www.apache.org/licenses/LICENSE-2.0" id="footer-license" rel="noopener">Apache-2.0</a>
+          <span>© 2026 SeamSpec</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <div class="visually-hidden" role="status" aria-live="polite" id="copy-status"></div>
+
+  <script>
+    (() => {
+      const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      /* Sticky nav border once scrolled */
+      const nav = document.getElementById('site-nav');
+      const sentinel = document.createElement('div');
+      sentinel.style.cssText = 'position:absolute;inset-block-start:0;block-size:8px;inline-size:1px';
+      document.body.prepend(sentinel);
+      new IntersectionObserver(([e]) => nav.toggleAttribute('data-scrolled', !e.isIntersecting)).observe(sentinel);
+
+      /* Copy buttons */
+      const status = document.getElementById('copy-status');
+      const copyText = async (text) => {
+        try {
+          await navigator.clipboard.writeText(text);
+          return true;
+        } catch {
+          const ta = Object.assign(document.createElement('textarea'), { value: text });
+          ta.setAttribute('readonly', '');
+          ta.style.cssText = 'position:fixed;opacity:0';
+          document.body.append(ta);
+          ta.select();
+          const ok = document.execCommand('copy');
+          ta.remove();
+          return ok;
+        }
+      };
+      document.querySelectorAll('[data-copy]').forEach((btn) => {
+        let timer;
+        btn.addEventListener('click', async () => {
+          const ok = await copyText(btn.dataset.copy);
+          status.textContent = ok ? 'Copied to clipboard' : 'Copy failed';
+          if (!ok) return;
+          btn.dataset.state = 'copied';
+          clearTimeout(timer);
+          timer = setTimeout(() => { delete btn.dataset.state; status.textContent = ''; }, 1800);
+        });
+      });
+
+      /* Terminal demo */
+      const body = document.getElementById('term-body');
+      const script = [
+        { k: 'you',      p: 'you ›',   t: 'add exponential backoff to the redis queue', type: true },
+        { k: 'agent',    p: 'agent ›', t: 'edit src/queue/redis.py' },
+        { k: 'ok',       p: '',        t: '✓ 14 tests pass' },
+        { k: 'agent',    p: 'agent ›', t: 'propose_invariant "backoff caps at 30s"' },
+        { k: 'proposed', p: '',        t: '◆ PROPOSED inv_5e6f7a8b · harness passes' },
+        { k: 'cmd',      p: '$',       t: 'seamspec review', type: true },
+        { k: 'plain',    p: '',        t: 'inv_5e6f7a8b  backoff caps at 30s  approve? [Y/n] y' },
+        { k: 'locked',   p: '',        t: '■ LOCKED inv_5e6f7a8b' },
+        { k: 'dim',      p: '',        t: '··· 40 turns later ···', pause: 1100 },
+        { k: 'agent',    p: 'agent ›', t: 'edit src/queue/redis.py  (refactor retries)' },
+        { k: 'fail',     p: '',        t: '✗ FAIL inv_5e6f7a8b · delay reached 64s' },
+        { k: 'failsub',  p: '',        t: 'stop blocked: fix it, or request a supersede' },
+      ];
+
+      const makeLine = ({ k, p }) => {
+        const line = document.createElement('span');
+        line.className = `ln ln--${k}`;
+        const pfx = document.createElement('span');
+        pfx.className = 'pfx';
+        pfx.textContent = p;
+        const txt = document.createElement('span');
+        txt.className = 'txt';
+        line.append(pfx, txt);
+        return { line, txt };
+      };
+
+      if (reduceMotion) {
+        for (const step of script) {
+          const { line, txt } = makeLine(step);
+          txt.textContent = step.t;
+          body.append(line);
+        }
+        return;
+      }
+
+      const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      let visible = true;
+      let wake = null;
+      new IntersectionObserver(([e]) => {
+        visible = e.isIntersecting;
+        if (visible && wake) { wake(); wake = null; }
+      }).observe(body);
+      const whenVisible = () => (visible && !document.hidden) ? Promise.resolve()
+        : new Promise((r) => { wake = r; document.addEventListener('visibilitychange', function h() { if (!document.hidden && visible) { document.removeEventListener('visibilitychange', h); r(); } }); });
+
+      const play = async () => {
+        for (;;) {
+          body.replaceChildren();
+          body.removeAttribute('data-idle');
+          for (const step of script) {
+            await whenVisible();
+            const { line, txt } = makeLine(step);
+            body.append(line);
+            if (step.type) {
+              body.setAttribute('data-typing', '');
+              await wait(350);
+              for (const ch of step.t) { txt.textContent += ch; await wait(26 + Math.random() * 38); }
+              body.removeAttribute('data-typing');
+              await wait(250);
+            } else {
+              txt.textContent = step.t;
+            }
+            await wait(step.pause ?? 560);
+          }
+          body.setAttribute('data-idle', '');
+          await wait(5200);
+        }
+      };
+      play();
+    })();
+  </script>
+</body>
+</html>

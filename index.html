@@ -1100,8 +1100,8 @@
               </li>
               <li class="gate">
                 <span class="gate__n">02</span>
-                <span class="gate__name">Pre-edit gate</span>
-                <span class="gate__where">Editor hook denies once, with the constraints in the reason</span>
+                <span class="gate__name">Edit-time context</span>
+                <span class="gate__where">Before the agent edits a governed file, it is shown the rules and past dead ends</span>
                 <span class="gate__strength">early warning<span class="meter" data-level="2" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></span>
               </li>
               <li class="gate gate--wall">
@@ -1119,11 +1119,11 @@
               <li class="gate gate--wall">
                 <span class="gate__n">05</span>
                 <span class="gate__name">CI</span>
-                <span class="gate__where">Full verification and ledger integrity on every push</span>
-                <span class="gate__strength">unskippable<span class="meter" data-level="5" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></span>
+                <span class="gate__where">Full verification, ledger integrity and a list of retired rules on every push</span>
+                <span class="gate__strength">final gate<span class="meter" data-level="5" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></span>
               </li>
             </ol>
-            <p class="gates__note"><strong>Same protection in Claude Code, Copilot and Cursor.</strong> SeamSpec plugs into each app's own hooks, so all five checkpoints are planned for all three. Other AI tools that don't offer hooks yet are still covered by git pre-commit and CI.</p>
+            <p class="gates__note"><strong>Claude Code first, then Copilot and Cursor.</strong> SeamSpec plugs into each app's own hooks: the first release targets Claude Code, and Copilot and Cursor are planned next with the same five checkpoints. Other AI tools that don't offer hooks yet are still covered by git pre-commit and CI. These gates stop accidental regressions; a deliberate bypass still needs human review of the pull request.</p>
           </div>
           <div class="principles reveal">
             <div class="principle">
@@ -1140,7 +1140,7 @@
             </div>
             <div class="principle">
               <h3>Any test runner</h3>
-              <p>Presets for pytest, vitest, jest, go test and cargo, plus a custom runner for everything else.</p>
+              <p>pytest and vitest first; jest, go test, cargo and a custom runner for everything else are planned next.</p>
             </div>
           </div>
         </div>
@@ -1200,10 +1200,10 @@
             </p>
             <ul class="roadmap" aria-label="Roadmap">
               <li data-done>Package name and CLI command reserved</li>
-              <li>Ledger, verifier and <code>seamspec review</code>, with pytest, vitest, jest, go and cargo runners and a git pre-commit gate</li>
-              <li>Claude Code hooks, MCP server and <code>/seamspec:lock</code></li>
-              <li>Braindump scratchpad with <code>/seamspec:drain</code>, Cursor and Copilot, CI workflow</li>
-              <li>Public repository and first release</li>
+              <li>Ledger, verifier and <code>seamspec review</code>, with pytest and vitest runners and a git pre-commit gate</li>
+              <li>Claude Code plugin: hooks, MCP server, <code>/seamspec:lock</code> and <code>/seamspec:dead-end</code></li>
+              <li>CI workflow, public repository and first release</li>
+              <li>Next: Cursor and Copilot, braindump scratchpad with <code>/seamspec:drain</code>, more runners</li>
             </ul>
             <div class="install__links">
               <a class="btn btn--primary" id="install-pypi-link" href="https://pypi.org/project/seamspec/" rel="noopener">

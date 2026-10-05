@@ -578,6 +578,155 @@
       .roadmap li::before { content: ""; position: absolute; inset-inline-start: 0; inset-block-start: 0.55em; inline-size: 0.45rem; block-size: 0.45rem; border-radius: 50%; border: 1.5px solid var(--thread); }
       .roadmap li[data-done]::before { background: var(--lock); border-color: var(--lock); }
 
+      /* Story: Maya's day. JS marks the active chapter; CSS plays that chapter's scene. */
+      .story__note { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-block-start: 1.25rem; }
+      .story__grid { display: block; }
+      .story__stage-wrap { position: sticky; z-index: 3; }
+      @media (width >= 60rem) {
+        .story__grid {
+          display: grid; column-gap: clamp(2.5rem, 1rem + 4vw, 4.5rem);
+          grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); grid-template-areas: "chapters stage";
+        }
+        .story__stage-wrap { grid-area: stage; align-self: start; inset-block-start: max(5.5rem, calc(50dvh - 13rem)); }
+        .story__chapters { grid-area: chapters; }
+      }
+      @media (width < 60rem) {
+        .story__stage-wrap {
+          inset-block-start: 4rem; margin-inline: calc(-1 * var(--gutter)); padding: 0.6rem var(--gutter) 1.6rem;
+          background: linear-gradient(var(--ink-950) 82%, transparent);
+        }
+      }
+
+      .chapter {
+        display: flex; flex-direction: column; justify-content: start;
+        min-block-size: 62vh; padding-block: 1.5rem; transition: opacity 0.4s;
+      }
+      .chapter:last-child { min-block-size: 70vh; }
+      @media (width < 60rem) { .chapter { min-block-size: 52vh; } .chapter:last-child { min-block-size: 60vh; } }
+      .story[data-live] .chapter:not(.is-active) { opacity: 0.3; }
+      .chapter__time {
+        display: flex; align-items: center; gap: 0.65rem;
+        font-family: var(--font-mono); font-size: 0.76rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--thread);
+      }
+      .chapter__n {
+        display: grid; place-items: center; inline-size: 1.7rem; block-size: 1.7rem; border-radius: 50%;
+        border: 1px solid color-mix(in oklab, var(--thread) 45%, transparent); font-size: 0.7rem; letter-spacing: 0;
+        transition: background-color 0.3s, color 0.3s;
+      }
+      .chapter.is-active .chapter__n { background: var(--thread); color: var(--ink-950); border-color: transparent; }
+      .chapter h3 { margin-block: 0.85rem 0.6rem; font-size: clamp(1.45rem, 1.1rem + 1.3vw, 2.05rem); font-weight: 700; }
+      .chapter p:not(.chapter__time) { max-inline-size: 32rem; color: var(--text-muted); }
+      .chapter code { font-size: 0.86em; color: var(--text); }
+      .chapter--aha .chapter__time { color: var(--lock); }
+      .chapter--aha .chapter__n { border-color: color-mix(in oklab, var(--lock) 45%, transparent); }
+      .chapter--aha.is-active .chapter__n { background: var(--lock); }
+
+      .stage { transition: border-color 0.4s, box-shadow 0.4s; }
+      .stage .term__bar .stage__file { min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-muted); }
+      .stage .term__bar .stage__clock { flex: none; margin-inline-start: auto; color: var(--thread); }
+      .stage .term__bar .tag { flex: none; margin-inline-start: 0.5rem; }
+      @media (width < 30rem) { .stage .term__bar i { display: none; } .stage .term__bar .stage__file { margin-inline-start: 0; } }
+      .stage[data-scene="6"] { border-color: color-mix(in oklab, var(--lock) 55%, transparent); }
+      .stage__body {
+        display: grid; padding: 1.15rem 1.25rem 1rem; overflow: hidden;
+        font-family: var(--font-mono); font-size: clamp(0.64rem, 0.58rem + 0.3vw, 0.82rem); line-height: 1.75; color: var(--text-muted);
+      }
+      .scene {
+        grid-area: 1 / 1; display: flex; flex-direction: column; align-items: start; gap: 0.3rem;
+        opacity: 0; visibility: hidden; transition: opacity 0.25s, visibility 0s 0.25s;
+      }
+      .scene.is-active { opacity: 1; visibility: visible; transition: opacity 0.4s 0.1s, visibility 0s; }
+      .stage__rail { display: flex; gap: 4px; padding: 0 1.25rem 1.1rem; }
+      .stage__rail i { flex: 1; block-size: 3px; border-radius: 2px; background: var(--ink-800); transition: background-color 0.4s; }
+      .stage__rail i.is-on { background: var(--thread); }
+      .stage[data-scene="6"] .stage__rail i.is-on { background: var(--lock); }
+
+      .s-line { white-space: pre; }
+      .s-line b { font-weight: 600; color: var(--thread); }
+      .s-agent b { color: var(--propose); }
+      .s-line .k { color: var(--propose); }
+      .s-head { font-weight: 600; color: var(--text); }
+      .s-code { color: var(--text); }
+      .s-ok { font-weight: 600; color: var(--lock); }
+      .s-dim { font-style: italic; color: var(--text-faint); }
+
+      .trays { align-self: stretch; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.55rem; margin-block-start: 0.45rem; }
+      .tray {
+        display: grid; align-content: start; gap: 0.2rem; padding: 0.65rem 0.75rem; border-radius: var(--radius-sm);
+        background: color-mix(in oklab, var(--accent) 8%, transparent); border: 1px solid color-mix(in oklab, var(--accent) 32%, transparent);
+      }
+      .tray__label { font-size: 0.78em; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+      .tray__note { font-family: var(--font-body); font-size: 1.08em; line-height: 1.35; color: var(--text); }
+      .tray__meta { font-size: 0.86em; line-height: 1.4; color: var(--text-faint); }
+
+      .ctx {
+        align-self: stretch; margin-block: 0.35rem; padding: 0.5rem 0.75rem; border-radius: var(--radius-sm);
+        border-inline-start: 2px solid var(--thread); background: color-mix(in oklab, var(--thread) 8%, transparent); color: var(--text);
+        & span { display: block; font-size: 0.8em; letter-spacing: 0.08em; text-transform: uppercase; color: var(--thread); }
+      }
+
+      .spec {
+        align-self: stretch; margin-block: 0.45rem 0.2rem; padding: 0.85rem 1rem; border-radius: var(--radius);
+        background: color-mix(in oklab, var(--propose) 7%, transparent); border: 1px solid color-mix(in oklab, var(--propose) 40%, transparent);
+      }
+      .spec__head { display: flex; justify-content: space-between; align-items: center; margin-block-end: 0.6rem; color: var(--text-faint); }
+      .pill { display: inline-flex; padding: 0.05rem 0.6rem; border-radius: 999px; font-weight: 600; }
+      .pill--proposed { color: var(--propose); background: color-mix(in oklab, var(--propose) 15%, transparent); }
+      .pill--time { margin-block-start: 0.5rem; color: var(--thread); background: color-mix(in oklab, var(--thread) 12%, transparent); }
+      .spec dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.35rem 0.9rem; }
+      .spec dt { padding-block-start: 0.1em; font-size: 0.82em; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint); }
+      .spec dd { color: var(--text); overflow-wrap: anywhere; }
+      .spec .rule { font-family: var(--font-body); font-size: 1.12em; line-height: 1.4; }
+      .pass { white-space: nowrap; color: var(--lock); }
+
+      .review { align-self: stretch; display: grid; gap: 0.4rem; margin-block: 0.4rem 0.1rem; }
+      .review li {
+        display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 0.4rem 0.7rem;
+        border-radius: var(--radius-sm); background: color-mix(in oklab, var(--ink-100) 4%, transparent); border: 1px solid var(--border);
+      }
+      .review .txt { color: var(--text); }
+      .review .rejected .txt { color: var(--text-faint); text-decoration: line-through; text-decoration-color: var(--fail); }
+      .stamp {
+        flex: none; padding: 0 0.5rem; border-radius: 4px; border: 1.5px solid var(--lock);
+        font-size: 0.82em; font-weight: 700; letter-spacing: 0.08em; color: var(--lock); rotate: -4deg;
+      }
+      .stamp--no { border-color: var(--fail); color: var(--fail); }
+
+      .alert {
+        align-self: stretch; display: grid; gap: 0.05rem; margin-block: 0.4rem; padding: 0.65rem 0.85rem; border-radius: var(--radius-sm);
+        background: color-mix(in oklab, var(--fail) 10%, transparent); border: 1px solid color-mix(in oklab, var(--fail) 50%, transparent);
+        & strong { color: var(--fail); }
+        & span { color: var(--text); }
+        & .alert__sub { color: color-mix(in oklab, var(--fail) 60%, var(--text-muted)); }
+      }
+      .punch { margin-block-start: 0.35rem; font-family: var(--font-display); font-size: 1.7em; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; }
+
+      @media (prefers-reduced-motion: no-preference) {
+        .scene.is-active .type { animation: type var(--dur, 0.9s) steps(var(--steps, 30), end) both; animation-delay: var(--d, 0s); }
+        .scene.is-active .pop { animation: pop 0.55s var(--ease-out) both; animation-delay: var(--d, 0s); }
+        .scene.is-active .fly { animation: fly 0.75s var(--ease-out) both; animation-delay: var(--d, 0s); }
+        .scene.is-active .stamp { animation: stamp 0.45s var(--ease-out) both; animation-delay: var(--d, 0s); }
+        .stage[data-scene="6"] { animation: alarm 4.4s ease both; }
+        @keyframes type { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0); } }
+        @keyframes pop { from { opacity: 0; translate: 0 0.6rem; scale: 0.98; } }
+        @keyframes fly { from { opacity: 0; translate: 0 -2.4rem; rotate: -5deg; scale: 0.9; } }
+        @keyframes stamp { from { opacity: 0; scale: 2.2; } 70% { opacity: 1; scale: 0.92; } }
+        @keyframes alarm {
+          0%, 18% { border-color: var(--border-strong); }
+          26%, 55% {
+            border-color: color-mix(in oklab, var(--fail) 75%, transparent);
+            box-shadow: var(--shadow-card), 0 0 0 3px color-mix(in oklab, var(--fail) 22%, transparent), 0 30px 90px -30px color-mix(in oklab, var(--fail) 75%, transparent);
+          }
+          82%, 100% {
+            border-color: color-mix(in oklab, var(--lock) 55%, transparent);
+            box-shadow: var(--shadow-card), 0 30px 90px -30px color-mix(in oklab, var(--lock) 55%, transparent);
+          }
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .scene, .scene.is-active, .chapter, .stage { transition: none; }
+      }
+
       /* Footer */
       .footer { padding-block: 3rem 3.5rem; color: var(--text-faint); font-size: 0.9rem; }
       .footer__inner { display: flex; flex-wrap: wrap; gap: 1.25rem 2rem; align-items: center; justify-content: space-between; margin-block-start: 3rem; }
@@ -636,6 +785,7 @@
       </a>
       <nav class="nav__links" aria-label="Primary">
         <a href="#how" id="nav-how" class="nav__secondary">How it works</a>
+        <a href="#story" id="nav-story" class="nav__secondary">Walkthrough</a>
         <a href="#enforcement" id="nav-enforcement" class="nav__secondary">Enforcement</a>
         <a href="#compare" id="nav-compare" class="nav__secondary">vs spec-first</a>
         <a href="#install" id="nav-install">Install</a>
@@ -726,6 +876,175 @@
       </div>
     </section>
 
+    <!-- Story: Maya's day -->
+    <section class="section story" id="story" aria-labelledby="story-title" style="padding-block-start: 0">
+      <div class="container">
+        <header class="section__head reveal">
+          <p class="eyebrow">A day with SeamSpec</p>
+          <h2 id="story-title">Meet Maya. Scroll through her day.</h2>
+          <p>
+            Maya is building a habit tracker with her coding agent. Here is one ordinary day,
+            and the moment a week later when SeamSpec pays off.
+          </p>
+          <p class="story__note"><span class="chip">Planned workflow · preview</span><span class="chip">No commands to memorise: just ask in plain words</span></p>
+        </header>
+
+        <div class="story__grid">
+          <div class="story__stage-wrap" aria-hidden="true">
+            <div class="term stage" id="story-stage" data-scene="1">
+              <div class="term__bar">
+                <i></i><i></i><i></i><span class="stage__file" id="story-file">BRAINDUMP.md</span>
+                <span class="stage__clock" id="story-clock">Mon 9:00</span><span class="tag">preview</span>
+              </div>
+              <div class="stage__body">
+                <!-- 1 · Dump -->
+                <div class="scene is-active" data-for="1">
+                  <span class="s-line s-head type" style="--steps:20;--dur:.5s"># brain dump, monday</span>
+                  <span class="s-line s-code type" style="--d:.7s;--steps:44;--dur:1.1s"><b>-</b> streaks reset at midnight, user's timezone</span>
+                  <span class="s-line s-code type" style="--d:2s;--steps:26;--dur:.7s"><b>-</b> use SQLite, not Postgres</span>
+                  <span class="s-line s-code type" style="--d:2.9s;--steps:44;--dur:1.1s"><b>-</b> tried Redis cache yesterday, way too heavy</span>
+                  <span class="s-line s-code type" style="--d:4.2s;--steps:20;--dur:.5s"><b>-</b> dark mode someday?</span>
+                  <span class="s-line s-dim pop" style="--d:5s">no format. maya's file, never rewritten.</span>
+                </div>
+
+                <!-- 2 · Drain -->
+                <div class="scene" data-for="2">
+                  <span class="s-line s-agent type" style="--steps:41;--dur:1s"><b>agent ›</b> 4 new braindump notes. sort them?</span>
+                  <span class="s-line s-code type" style="--d:1.3s;--steps:9;--dur:.3s"><b>you ›</b> yes</span>
+                  <div class="trays">
+                    <div class="tray fly" style="--accent: var(--propose); --d:1.9s">
+                      <span class="tray__label">Decision</span>
+                      <span class="tray__note">use SQLite, not Postgres</span>
+                      <span class="tray__meta">recorded with its why</span>
+                    </div>
+                    <div class="tray fly" style="--accent: var(--fail); --d:2.3s">
+                      <span class="tray__label">Dead end</span>
+                      <span class="tray__note">Redis cache, too heavy</span>
+                      <span class="tray__meta">saved now, no approval</span>
+                    </div>
+                    <div class="tray fly" style="--accent: var(--thread); --d:2.7s">
+                      <span class="tray__label">Waiting</span>
+                      <span class="tray__note">streaks reset at local midnight</span>
+                      <span class="tray__meta">needs working code first</span>
+                    </div>
+                    <div class="tray fly" style="--accent: var(--ink-400); --d:3.1s">
+                      <span class="tray__label">Idea</span>
+                      <span class="tray__note">dark mode someday?</span>
+                      <span class="tray__meta">stays in the braindump</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 3 · Build -->
+                <div class="scene" data-for="3">
+                  <span class="s-line s-code type" style="--steps:30;--dur:.8s"><b>you ›</b> build the streak feature</span>
+                  <div class="ctx pop" style="--d:1s"><span>seamspec context, before any edit</span>decision: SQLite · dead end: Redis cache</div>
+                  <span class="s-line s-code type" style="--d:1.8s;--steps:25;--dur:.6s"><span class="k">def</span> roll_over(user, now):</span>
+                  <span class="s-line s-code type" style="--d:2.5s;--steps:35;--dur:.8s">    local = now.astimezone(user.tz)</span>
+                  <span class="s-line s-code type" style="--d:3.4s;--steps:41;--dur:.9s">    <span class="k">if</span> (local.date() - user.last_day).days > 1:</span>
+                  <span class="s-line s-code type" style="--d:4.4s;--steps:23;--dur:.5s">        user.streak = 0</span>
+                  <span class="s-line s-ok pop" style="--d:5.1s">✓ 12 tests pass</span>
+                </div>
+
+                <!-- 4 · Lock -->
+                <div class="scene" data-for="4">
+                  <span class="s-line s-agent type" style="--steps:26;--dur:.7s"><b>agent ›</b> propose_invariant</span>
+                  <div class="spec pop" style="--d:.8s">
+                    <div class="spec__head"><span class="pill pill--proposed">◆ PROPOSED</span><span>inv_3f9a</span></div>
+                    <dl>
+                      <dt>Rule</dt><dd class="rule">Streaks reset at midnight in the user's local timezone.</dd>
+                      <dt>Proof</dt><dd>test_streak_resets_at_local_midnight <span class="pass pop" style="--d:1.6s">✓ passes</span></dd>
+                      <dt>Scope</dt><dd>src/streaks.py</dd>
+                    </dl>
+                  </div>
+                  <span class="s-line s-dim pop" style="--d:2.3s">not locked yet. waiting for maya.</span>
+                </div>
+
+                <!-- 5 · Review -->
+                <div class="scene" data-for="5">
+                  <span class="s-line s-code type" style="--steps:17;--dur:.5s"><b>$</b> seamspec review</span>
+                  <ul class="review">
+                    <li class="pop" style="--d:.6s"><span class="txt">Streaks reset at local midnight</span><span class="stamp" style="--d:1.3s">LOCKED</span></li>
+                    <li class="pop" style="--d:.75s"><span class="txt">Check-ins are idempotent</span><span class="stamp" style="--d:1.7s">LOCKED</span></li>
+                    <li class="pop" style="--d:.9s"><span class="txt">CSV export keeps its header</span><span class="stamp" style="--d:2.1s">LOCKED</span></li>
+                    <li class="pop rejected" style="--d:1.05s"><span class="txt">Sync retries 5 times</span><span class="stamp stamp--no" style="--d:2.5s">REJECTED</span></li>
+                  </ul>
+                  <span class="pill pill--time pop" style="--d:3s">4 decisions, 4 keystrokes</span>
+                </div>
+
+                <!-- 6 · Next week: the aha -->
+                <div class="scene" data-for="6">
+                  <span class="s-line s-agent type" style="--steps:31;--dur:.8s"><b>agent ›</b> refactor: time math to UTC</span>
+                  <div class="alert pop" style="--d:1s">
+                    <strong>✗ Locked rule broken</strong>
+                    <span>Streaks reset at local midnight</span>
+                    <span class="alert__sub">streak reset at 00:00 UTC, not local time</span>
+                    <span class="alert__sub">stop blocked: fix it before you finish</span>
+                  </div>
+                  <span class="s-line s-agent type" style="--d:2.4s;--steps:34;--dur:.8s"><b>agent ›</b> fix: keep user's timezone</span>
+                  <span class="s-line s-ok pop" style="--d:3.4s">✓ all locked rules pass · done</span>
+                  <span class="punch grad pop" style="--d:4s">Maya never noticed.</span>
+                </div>
+              </div>
+              <div class="stage__rail"><i class="is-on"></i><i></i><i></i><i></i><i></i><i></i></div>
+            </div>
+          </div>
+
+          <ol class="story__chapters">
+            <li class="chapter" id="chapter-dump" data-scene="1" data-time="Mon 9:00" data-file="BRAINDUMP.md">
+              <p class="chapter__time"><span class="chapter__n">1</span>Mon 9:00 · Dump</p>
+              <h3>Maya dumps her thoughts.</h3>
+              <p>
+                Before coding, she types messy notes into <code>BRAINDUMP.md</code>: a rule, a choice, something that failed yesterday.
+                No format, no ceremony. It's her file, and SeamSpec never rewrites it.
+              </p>
+            </li>
+            <li class="chapter" id="chapter-drain" data-scene="2" data-time="Mon 9:05" data-file="agent session">
+              <p class="chapter__time"><span class="chapter__n">2</span>Mon 9:05 · Drain</p>
+              <h3>Her agent offers to sort the mess.</h3>
+              <p>
+                When her session starts, the agent notices 4 new notes and asks to sort them. She says yes; no command needed.
+                The decision is recorded. The failed Redis attempt becomes a dead end straight away. The streak rule waits,
+                because that code doesn't exist yet. Ideas stay in the braindump.
+              </p>
+            </li>
+            <li class="chapter" id="chapter-build" data-scene="3" data-time="Mon 11:00" data-file="src/streaks.py">
+              <p class="chapter__time"><span class="chapter__n">3</span>Mon 11:00 · Build</p>
+              <h3>She vibes. The agent builds.</h3>
+              <p>
+                Maya asks for the streak feature. Before the first edit, the agent is handed the history that matters:
+                use SQLite, Redis already failed. It doesn't repeat yesterday's mistake.
+              </p>
+            </li>
+            <li class="chapter" id="chapter-lock" data-scene="4" data-time="Mon 14:00" data-file=".seamspec/proposed">
+              <p class="chapter__time"><span class="chapter__n">4</span>Mon 14:00 · Lock</p>
+              <h3>It works, so it gets a spec.</h3>
+              <p>
+                Streaks now reset correctly. The agent proposes a spec: a plain-language rule plus the test that proves it.
+                Nothing is locked yet.
+              </p>
+            </li>
+            <li class="chapter" id="chapter-review" data-scene="5" data-time="Mon 18:00" data-file="terminal">
+              <p class="chapter__time"><span class="chapter__n">5</span>Mon 18:00 · Review</p>
+              <h3>Four keystrokes of review.</h3>
+              <p>
+                Maya runs <code>seamspec review</code>, approves three proposals and rejects one.
+                It's the one command she runs herself, and she's reminded when it's due. Only what she approves becomes locked.
+              </p>
+            </li>
+            <li class="chapter chapter--aha" id="chapter-enforced" data-scene="6" data-time="Next Tue 10:40" data-file="agent session">
+              <p class="chapter__time"><span class="chapter__n">6</span>A week later · Enforced</p>
+              <h3>The agent breaks it. <span class="grad">Maya never notices.</span></h3>
+              <p>
+                A refactor quietly moves streak resets to UTC. The locked test fails, and the agent can't finish until
+                it's fixed, so it fixes it. Anything that slips past is caught by git pre-commit and CI.
+              </p>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
     <!-- Ledger -->
     <section class="section" id="ledger" aria-labelledby="ledger-title" style="padding-block-start: 0">
       <div class="container">
@@ -804,7 +1123,7 @@
                 <span class="gate__strength">unskippable<span class="meter" data-level="5" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></span>
               </li>
             </ol>
-            <p class="gates__note"><strong>Honest by design.</strong> Every capability is labeled with its real enforcement strength per host. Claude Code gets the full set; other hosts get what their hook APIs actually support, and pre-commit and CI work everywhere.</p>
+            <p class="gates__note"><strong>Same protection in Claude Code, Copilot and Cursor.</strong> SeamSpec plugs into each app's own hooks, so all five checkpoints are planned for all three. Other AI tools that don't offer hooks yet are still covered by git pre-commit and CI.</p>
           </div>
           <div class="principles reveal">
             <div class="principle">
@@ -881,8 +1200,10 @@
             </p>
             <ul class="roadmap" aria-label="Roadmap">
               <li data-done>Package name and CLI command reserved</li>
-              <li>First release: Claude Code, pytest, git pre-commit and <code>seamspec review</code></li>
-              <li>More hosts and runners, CI workflow, public repository</li>
+              <li>Ledger, verifier and <code>seamspec review</code>, with pytest, vitest, jest, go and cargo runners and a git pre-commit gate</li>
+              <li>Claude Code hooks, MCP server and <code>/seamspec:lock</code></li>
+              <li>Braindump scratchpad with <code>/seamspec:drain</code>, Cursor and Copilot, CI workflow</li>
+              <li>Public repository and first release</li>
             </ul>
             <div class="install__links">
               <a class="btn btn--primary" id="install-pypi-link" href="https://pypi.org/project/seamspec/" rel="noopener">
@@ -1053,6 +1374,55 @@ Under active development: https://seamspec.github.io</pre>
         }
       };
       play();
+    })();
+  </script>
+  <script>
+    /* Story: the chapter crossing a horizontal line in the viewport picks the scene. */
+    (() => {
+      const story = document.getElementById('story');
+      const stage = document.getElementById('story-stage');
+      if (!story || !stage || !('IntersectionObserver' in window)) return;
+      const chapters = [...story.querySelectorAll('.chapter')];
+      const scenes = [...stage.querySelectorAll('.scene')];
+      const ticks = [...stage.querySelectorAll('.stage__rail i')];
+      const clock = document.getElementById('story-clock');
+      const file = document.getElementById('story-file');
+      let current = 0;
+
+      const show = (n) => {
+        if (n === current) return;
+        current = n;
+        stage.dataset.scene = n;
+        scenes.forEach((s) => s.classList.toggle('is-active', +s.dataset.for === n));
+        chapters.forEach((c) => c.classList.toggle('is-active', +c.dataset.scene === n));
+        ticks.forEach((t, i) => t.classList.toggle('is-on', i < n));
+        const ch = chapters[n - 1];
+        clock.textContent = ch.dataset.time;
+        file.textContent = ch.dataset.file;
+      };
+
+      /* Hold scene 1 until the stage is actually on screen, so its typing isn't missed. */
+      scenes[0].classList.remove('is-active');
+      chapters[0].classList.add('is-active');
+      story.setAttribute('data-live', '');
+      const start = new IntersectionObserver(([e]) => {
+        if (e.isIntersecting) { if (!current) show(1); start.disconnect(); }
+      }, { threshold: 0.5 });
+      start.observe(stage);
+
+      /* Desktop: line at 45% of the viewport. Mobile: the pinned stage covers the top, so use 68%. */
+      const wide = matchMedia('(width >= 60rem)');
+      let io;
+      const watch = () => {
+        io?.disconnect();
+        const margin = wide.matches ? '-45% 0px -54% 0px' : '-68% 0px -31% 0px';
+        io = new IntersectionObserver((entries) => {
+          for (const e of entries) if (e.isIntersecting) show(+e.target.dataset.scene);
+        }, { rootMargin: margin });
+        chapters.forEach((c) => io.observe(c));
+      };
+      watch();
+      wide.addEventListener('change', watch);
     })();
   </script>
 </body>

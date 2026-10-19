@@ -538,7 +538,17 @@
         .compare tbody tr:not(:last-child) > th { border-block-end: 0; }
         .compare tbody tr > td { padding-block-start: 0.4rem; }
         .compare tbody tr > th { background: transparent; }
+        #results-table tr { grid-template-columns: repeat(3, 1fr); }
       }
+      /* The results table puts SeamSpec in the second column, ahead of two alternatives. */
+      #results-table td:nth-child(3) { background: none; }
+      #results-table thead th:nth-child(3) { background: none; color: var(--text); }
+      #results-table td:nth-child(n+3) { color: var(--text-muted); }
+      #results-table td:nth-child(2), #results-table thead th:nth-child(2) {
+        background: linear-gradient(90deg, color-mix(in oklab, var(--thread) 7%, transparent), color-mix(in oklab, var(--lock) 5%, transparent));
+        color: var(--text);
+      }
+      #results-table thead th:nth-child(2) { color: var(--thread); }
       .compare__note { margin-block-start: 0.9rem; text-align: center; font-size: 0.85rem; color: var(--text-faint); }
       .tradeoff {
         display: flex; gap: 1rem; margin-block-start: 1.5rem; padding: 1.25rem 1.4rem; border-radius: var(--radius);
@@ -787,6 +797,7 @@
         <a href="#how" id="nav-how" class="nav__secondary">How it works</a>
         <a href="#story" id="nav-story" class="nav__secondary">Walkthrough</a>
         <a href="#enforcement" id="nav-enforcement" class="nav__secondary">Enforcement</a>
+        <a href="#results" id="nav-results" class="nav__secondary">Results</a>
         <a href="#compare" id="nav-compare" class="nav__secondary">vs spec-first</a>
         <a href="#install" id="nav-install">Install</a>
       </nav>
@@ -802,8 +813,9 @@
           <h1 id="hero-title">SeamSpec</h1>
           <p class="hero__tagline">Build first; every seam that works <span class="grad">gets a spec.</span></p>
           <p class="hero__lead">
-            An open-source governance layer for AI coding agents. When you and your agent get something working,
-            SeamSpec turns it into a small, human-approved, executable invariant, then blocks anything that breaks it.
+            Your AI agent can't quietly renegotiate what your team agreed. Say what must stay true, and SeamSpec
+            turns it into a small rule with a test that you approve, then stops any change that breaks it, whoever
+            makes it: when the agent finishes, at commit, and in CI.
           </p>
           <div class="hero__actions">
             <div class="cmd" id="hero-cmd">
@@ -820,7 +832,7 @@
             </a>
           </div>
           <p class="hero__hosts" id="hero-hosts">
-            <span>Built for</span><span>Claude Code</span><span>VS Code Copilot</span><span>Cursor</span><span>any MCP client</span>
+            <span>Built for</span><span>Claude Code</span><span>Cursor</span><span>VS Code Copilot</span><span>Antigravity</span>
           </p>
         </div>
 
@@ -832,7 +844,7 @@
             <pre class="term__body" id="term-body" aria-hidden="true"></pre>
           </div>
           <figcaption class="term__caption">
-            Illustration of the planned workflow: a working change is proposed as an invariant, approved with
+            Illustration of the workflow: a working change is proposed as an invariant, approved with
             <code>seamspec review</code>, then a later regression is blocked before the agent can finish.
           </figcaption>
         </figure>
@@ -848,8 +860,9 @@
           <p class="eyebrow">How it works</p>
           <h2 id="how-title">Vibe. Lock. Enforced.</h2>
           <p>
-            Long agent sessions hit an entropy wall: earlier decisions quietly erode, fixes reintroduce old bugs,
-            failed approaches get retried. SeamSpec lets the spec harden behind you, one working seam at a time.
+            What you agree with your agent lives in one chat, and is gone by the next session. A notes file helps,
+            but it is advice to whichever agent reads it. SeamSpec captures what you agree as tested rules, one
+            working seam at a time, and lets the spec harden behind you.
           </p>
         </header>
 
@@ -863,7 +876,7 @@
           <li class="step step--lock reveal" id="step-lock">
             <span class="step__num" aria-hidden="true">2</span>
             <h3>Lock <small>capture what works</small></h3>
-            <p>When a behavior works, the agent proposes an invariant backed by a test that already passes. You approve in batches with one keystroke.</p>
+            <p>When you state an agreement, or a behavior works, the agent proposes an invariant backed by a test that already passes. Nobody writes it by hand; you approve it with one keystroke.</p>
             <div class="chips"><span class="chip">seamspec review</span><span class="chip">human-approved</span></div>
           </li>
           <li class="step step--enforce reveal" id="step-enforce">
@@ -886,7 +899,7 @@
             Maya is building a habit tracker with her coding agent. Here is one ordinary day,
             and the moment a week later when SeamSpec pays off.
           </p>
-          <p class="story__note"><span class="chip">Planned workflow · preview</span><span class="chip">No commands to memorise: just ask in plain words</span></p>
+          <p class="story__note"><span class="chip">The workflow as built</span><span class="chip">No commands to memorise: just ask in plain words</span></p>
         </header>
 
         <div class="story__grid">
@@ -915,7 +928,7 @@
                     <div class="tray fly" style="--accent: var(--propose); --d:1.9s">
                       <span class="tray__label">Decision</span>
                       <span class="tray__note">use SQLite, not Postgres</span>
-                      <span class="tray__meta">recorded with its why</span>
+                      <span class="tray__meta">proposed with its why</span>
                     </div>
                     <div class="tray fly" style="--accent: var(--fail); --d:2.3s">
                       <span class="tray__label">Dead end</span>
@@ -923,9 +936,9 @@
                       <span class="tray__meta">saved now, no approval</span>
                     </div>
                     <div class="tray fly" style="--accent: var(--thread); --d:2.7s">
-                      <span class="tray__label">Waiting</span>
+                      <span class="tray__label">Planned</span>
                       <span class="tray__note">streaks reset at local midnight</span>
-                      <span class="tray__meta">needs working code first</span>
+                      <span class="tray__meta">the agent builds to it</span>
                     </div>
                     <div class="tray fly" style="--accent: var(--ink-400); --d:3.1s">
                       <span class="tray__label">Idea</span>
@@ -969,7 +982,7 @@
                     <li class="pop" style="--d:.9s"><span class="txt">CSV export keeps its header</span><span class="stamp" style="--d:2.1s">LOCKED</span></li>
                     <li class="pop rejected" style="--d:1.05s"><span class="txt">Sync retries 5 times</span><span class="stamp stamp--no" style="--d:2.5s">REJECTED</span></li>
                   </ul>
-                  <span class="pill pill--time pop" style="--d:3s">4 decisions, 4 keystrokes</span>
+                  <span class="pill pill--time pop" style="--d:3s">one key per answer</span>
                 </div>
 
                 <!-- 6 · Next week: the aha -->
@@ -1004,8 +1017,9 @@
               <h3>Her agent offers to sort the mess.</h3>
               <p>
                 When her session starts, the agent notices 4 new notes and asks to sort them. She says yes; no command needed.
-                The decision is recorded. The failed Redis attempt becomes a dead end straight away. The streak rule waits,
-                because that code doesn't exist yet. Ideas stay in the braindump.
+                The SQLite decision is proposed, with its why. The failed Redis attempt becomes a dead end straight away.
+                The streak rule becomes planned: that code doesn't exist yet, so the agent is shown the rule while it builds
+                and proposes it once the code works. Ideas stay in the braindump.
               </p>
             </li>
             <li class="chapter" id="chapter-build" data-scene="3" data-time="Mon 11:00" data-file="src/streaks.py">
@@ -1026,9 +1040,10 @@
             </li>
             <li class="chapter" id="chapter-review" data-scene="5" data-time="Mon 18:00" data-file="terminal">
               <p class="chapter__time"><span class="chapter__n">5</span>Mon 18:00 · Review</p>
-              <h3>Four keystrokes of review.</h3>
+              <h3>One command, a few minutes of review.</h3>
               <p>
-                Maya runs <code>seamspec review</code>, approves three proposals and rejects one.
+                Maya runs <code>seamspec review</code>. She reads each rule and its test, sees that it fails without the
+                change, and answers with one key: she accepts the decision, approves three rules and rejects one.
                 It's the one command she runs herself, and she's reminded when it's due. Only what she approves becomes locked.
               </p>
             </li>
@@ -1050,7 +1065,7 @@
       <div class="container">
         <header class="section__head reveal">
           <p class="eyebrow">A living ledger</p>
-          <h2 id="ledger-title">Memory your agent can't forget.</h2>
+          <h2 id="ledger-title">Agreements that live in your repository.</h2>
           <p>Plain files in your repo, one record per file, reviewable in pull requests. No chat history required.</p>
         </header>
         <div class="ledger">
@@ -1101,7 +1116,7 @@
               <li class="gate">
                 <span class="gate__n">02</span>
                 <span class="gate__name">Edit-time context</span>
-                <span class="gate__where">Before the agent edits a governed file, it is shown the rules and past dead ends</span>
+                <span class="gate__where">Before the agent edits a governed file, it is shown the rules and past dead ends (Claude Code; in the other tools, at the start of every chat)</span>
                 <span class="gate__strength">early warning<span class="meter" data-level="2" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></span>
               </li>
               <li class="gate gate--wall">
@@ -1123,7 +1138,7 @@
                 <span class="gate__strength">final gate<span class="meter" data-level="5" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></span>
               </li>
             </ol>
-            <p class="gates__note"><strong>Claude Code first, then Copilot and Cursor.</strong> SeamSpec plugs into each app's own hooks: the first release targets Claude Code, and Copilot and Cursor are planned next with the same five checkpoints. Other AI tools that don't offer hooks yet are still covered by git pre-commit and CI. These gates stop accidental regressions; a deliberate bypass still needs human review of the pull request.</p>
+            <p class="gates__note"><strong>Claude Code, Cursor, VS Code Copilot and Antigravity.</strong> SeamSpec plugs into each app's own hooks, and the check when the agent finishes runs in all four; it has been tried hands-on in each. Tools without hooks are still covered by git pre-commit and CI. For a team, CI as a required check is the gate that guards <code>main</code>, whoever made the change.</p>
           </div>
           <div class="principles reveal">
             <div class="principle">
@@ -1150,6 +1165,69 @@
     <div class="container"><div class="seam" aria-hidden="true"></div></div>
 
     <!-- Compare -->
+    <section class="section" id="results" aria-labelledby="results-title">
+      <div class="container">
+        <header class="section__head section__head--center reveal">
+          <p class="eyebrow">What we measured</p>
+          <h2 id="results-title">Tested against the alternatives, ties included.</h2>
+          <p>Three small projects with agreements that later requests tempt the agent to break, run with Claude Sonnet 5.5. Each plan and pass bar was fixed before its run; violations were checked by hidden tests the agent never saw.</p>
+        </header>
+        <div class="compare reveal" id="results-table">
+          <div class="compare__scroll">
+            <table>
+              <caption class="visually-hidden">Benchmark results: SeamSpec against an agent keeping its own notes and against nothing</caption>
+              <thead>
+                <tr>
+                  <td></td>
+                  <th scope="col">SeamSpec</th>
+                  <th scope="col">Agent keeps its own notes</th>
+                  <th scope="col">Nothing</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">Agreements only said in chat: broken three sessions later <small>15 runs each</small></th><td><strong>0</strong></td><td>8</td><td>22</td></tr>
+                <tr><th scope="row">Agreements captured as tested rules, with nobody writing them</th><td><strong>39 of 40</strong></td><td>n/a</td><td>n/a</td></tr>
+                <tr><th scope="row">A teammate's agent, in a fresh clone: broken agreements that reached <code>main</code> <small>9 runs each</small></th><td><strong>0</strong></td><td>6</td><td>12</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <p class="compare__note reveal" id="results-note">With plain tests and a stop hook instead, agents rewrote the rule tests 12 times; SeamSpec's locked tests stayed as approved. The full plans, results and allowed claims will be published with the repository.</p>
+        <p class="tradeoff reveal" id="results-tradeoff">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+          <span><strong>Where SeamSpec doesn't win:</strong> notes a person wrote carefully in <code>CLAUDE.md</code> broke 0 agreements too, because a careful agent respects a good notes file. Within one long session, nothing slipped in any setup; agreements get lost <em>between</em> sessions. And the guard can be stricter than you meant: in 2 of 9 runs, CI blocked a change that broke nothing the benchmark checked, because a captured rule pinned a detail that had been stated. SeamSpec's difference is that its rules are tests, captured for you, enforced at commit and in CI, and changed only with your approval.</span>
+        </p>
+      </div>
+    </section>
+
+    <div class="container"><div class="seam" aria-hidden="true"></div></div>
+
+    <section class="section" id="teams" aria-labelledby="teams-title" style="padding-block-start: 0">
+      <div class="container">
+        <header class="section__head reveal">
+          <p class="eyebrow">For teams</p>
+          <h2 id="teams-title">Whoever changes the code, a broken agreement doesn't reach <code>main</code>.</h2>
+          <p>A teammate, their agent, another tool, or someone editing by hand: notes can only advise them. SeamSpec's rules are tests that CI runs on every pull request.</p>
+        </header>
+        <div class="ledger">
+          <article class="card reveal" id="card-ci" style="--accent: var(--lock)">
+            <h3>CI guards main</h3>
+            <p><code>seamspec init --ci</code> adds a workflow that runs every approved rule on each pull request. Make its check required, and a change that breaks an agreement can't be merged.</p>
+          </article>
+          <article class="card reveal" id="card-yes" style="--accent: var(--propose)">
+            <h3>Changes need a yes</h3>
+            <p>An agent can't quietly rewrite a rule or its test. A requirement that really changed goes through a supersede request a person approves, with the history kept.</p>
+          </article>
+          <article class="card reveal" id="card-notes" style="--accent: var(--fail)">
+            <h3>Keep your notes too</h3>
+            <p>A good <code>CLAUDE.md</code> still helps every agent understand the project. Use SeamSpec for the few agreements that would really hurt if broken: money, data contracts, public APIs.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <div class="container"><div class="seam" aria-hidden="true"></div></div>
+
     <section class="section" id="compare" aria-labelledby="compare-title">
       <div class="container">
         <header class="section__head section__head--center reveal">
@@ -1193,17 +1271,20 @@
         <div class="install reveal">
           <div class="install__intro">
             <p class="eyebrow">Install</p>
-            <h2 id="install-title">Claim your seat early.</h2>
+            <h2 id="install-title">Almost there.</h2>
             <p>
-              SeamSpec is in pre-release. Today's package reserves the name and ships a placeholder CLI;
-              the first working release is under active development.
+              SeamSpec v0.1 is built and tested, and in final checks before its first release. Today's PyPI package
+              still only reserves the name; the working release comes with the public repository.
             </p>
             <ul class="roadmap" aria-label="Roadmap">
               <li data-done>Package name and CLI command reserved</li>
-              <li>Ledger, verifier and <code>seamspec review</code>, with pytest and vitest runners and a git pre-commit gate</li>
-              <li>Claude Code plugin: hooks, MCP server, <code>/seamspec:lock</code> and <code>/seamspec:dead-end</code></li>
-              <li>CI workflow, public repository and first release</li>
-              <li>Next: Cursor and Copilot, braindump scratchpad with <code>/seamspec:drain</code>, more runners</li>
+              <li data-done>Ledger, verifier and <code>seamspec review</code>, with pytest and vitest runners and a git pre-commit gate</li>
+              <li data-done>Claude Code plugin: hooks, MCP server, workflow commands and a read-only reviewer</li>
+              <li data-done>Cursor, VS Code Copilot and Antigravity, each tried hands-on</li>
+              <li data-done>BRAINDUMP scratchpad with <code>/seamspec:drain</code>, and a CI workflow</li>
+              <li data-done>Benchmarks: capture, a long session, and a second actor</li>
+              <li>Public repository and first release</li>
+              <li>Next: more runners (jest, go test, cargo)</li>
             </ul>
             <div class="install__links">
               <a class="btn btn--primary" id="install-pypi-link" href="https://pypi.org/project/seamspec/" rel="noopener">

@@ -538,7 +538,17 @@
         .compare tbody tr:not(:last-child) > th { border-block-end: 0; }
         .compare tbody tr > td { padding-block-start: 0.4rem; }
         .compare tbody tr > th { background: transparent; }
+        #results-table tr { grid-template-columns: repeat(3, 1fr); }
       }
+      /* The results table puts SeamSpec in the second column, ahead of two alternatives. */
+      #results-table td:nth-child(3) { background: none; }
+      #results-table thead th:nth-child(3) { background: none; color: var(--text); }
+      #results-table td:nth-child(n+3) { color: var(--text-muted); }
+      #results-table td:nth-child(2), #results-table thead th:nth-child(2) {
+        background: linear-gradient(90deg, color-mix(in oklab, var(--thread) 7%, transparent), color-mix(in oklab, var(--lock) 5%, transparent));
+        color: var(--text);
+      }
+      #results-table thead th:nth-child(2) { color: var(--thread); }
       .compare__note { margin-block-start: 0.9rem; text-align: center; font-size: 0.85rem; color: var(--text-faint); }
       .tradeoff {
         display: flex; gap: 1rem; margin-block-start: 1.5rem; padding: 1.25rem 1.4rem; border-radius: var(--radius);
@@ -1182,7 +1192,7 @@
             </table>
           </div>
         </div>
-        <p class="compare__note reveal" id="results-note">With plain tests and a stop hook instead, agents rewrote the rule tests 12 times; SeamSpec's locked tests stayed as approved. The full plans, results and allowed claims are published with the repository.</p>
+        <p class="compare__note reveal" id="results-note">With plain tests and a stop hook instead, agents rewrote the rule tests 12 times; SeamSpec's locked tests stayed as approved. The full plans, results and allowed claims will be published with the repository.</p>
         <p class="tradeoff reveal" id="results-tradeoff">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
           <span><strong>Where SeamSpec doesn't win:</strong> notes a person wrote carefully in <code>CLAUDE.md</code> broke 0 agreements too, because a careful agent respects a good notes file. Within one long session, nothing slipped in any setup; agreements get lost <em>between</em> sessions. And the guard can be stricter than you meant: in 2 of 9 runs, CI blocked a change that broke nothing the benchmark checked, because a captured rule pinned a detail that had been stated. SeamSpec's difference is that its rules are tests, captured for you, enforced at commit and in CI, and changed only with your approval.</span>

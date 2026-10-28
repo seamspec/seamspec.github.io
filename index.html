@@ -28,12 +28,13 @@
     "@type": "SoftwareApplication",
     "name": "SeamSpec",
     "applicationCategory": "DeveloperApplication",
-    "operatingSystem": "macOS, Linux, Windows",
+    "operatingSystem": "macOS, Linux",
     "description": "Open-source governance layer for AI coding agents. Build first; every seam that works gets a spec.",
-    "softwareVersion": "0.0.2",
+    "softwareVersion": "0.1.0",
     "license": "https://www.apache.org/licenses/LICENSE-2.0",
     "url": "https://seamspec.github.io/",
     "downloadUrl": "https://pypi.org/project/seamspec/",
+    "sameAs": ["https://github.com/seamspec/seamspec"],
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
   }
   </script>
@@ -241,9 +242,6 @@
       .btn--ghost {
         color: var(--text); background: color-mix(in oklab, var(--ink-100) 4%, transparent); border-color: var(--border-strong);
         &:hover { transform: translateY(-2px); background: color-mix(in oklab, var(--ink-100) 8%, transparent); }
-      }
-      .btn--soon {
-        color: var(--text-faint); background: transparent; border: 1px dashed var(--border-strong); cursor: default;
       }
       .btn--sm { min-block-size: 2.25rem; padding-inline: 0.9rem; font-size: 0.875rem; }
 
@@ -800,6 +798,7 @@
         <a href="#results" id="nav-results" class="nav__secondary">Results</a>
         <a href="#compare" id="nav-compare" class="nav__secondary">vs spec-first</a>
         <a href="#install" id="nav-install">Install</a>
+        <a href="https://github.com/seamspec/seamspec" id="nav-github" class="nav__secondary" rel="noopener">GitHub</a>
       </nav>
     </div>
   </header>
@@ -809,7 +808,7 @@
     <section class="hero" id="top" aria-labelledby="hero-title">
       <div class="container hero__grid">
         <div class="hero__copy">
-          <p class="badge" id="hero-badge"><span class="dot" aria-hidden="true"></span><strong>v0.0.2</strong> pre-release · Apache-2.0</p>
+          <p class="badge" id="hero-badge"><span class="dot" aria-hidden="true"></span><strong>v0.1.0</strong> first release · Apache-2.0</p>
           <h1 id="hero-title">SeamSpec</h1>
           <p class="hero__tagline">Build first; every seam that works <span class="grad">gets a spec.</span></p>
           <p class="hero__lead">
@@ -1192,7 +1191,7 @@
             </table>
           </div>
         </div>
-        <p class="compare__note reveal" id="results-note">With plain tests and a stop hook instead, agents rewrote the rule tests 12 times; SeamSpec's locked tests stayed as approved. The full plans, results and allowed claims will be published with the repository.</p>
+        <p class="compare__note reveal" id="results-note">With plain tests and a stop hook instead, agents rewrote the rule tests 12 times; SeamSpec's locked tests stayed as approved. Every plan, result and allowed claim is published: <a href="https://github.com/seamspec/seamspec/blob/main/docs/benchmark/capture-1.md" rel="noopener">capture</a>, <a href="https://github.com/seamspec/seamspec/blob/main/docs/benchmark/second-1.md" rel="noopener">second actor</a>, <a href="https://github.com/seamspec/seamspec/blob/main/docs/benchmark/full-1.md" rel="noopener">plain tests</a>, <a href="https://github.com/seamspec/seamspec/blob/main/docs/benchmark/long-1.md" rel="noopener">long session</a>, and the <a href="https://github.com/seamspec/seamspec/blob/main/docs/adr/README.md" rel="noopener">decision records</a>.</p>
         <p class="tradeoff reveal" id="results-tradeoff">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
           <span><strong>Where SeamSpec doesn't win:</strong> notes a person wrote carefully in <code>CLAUDE.md</code> broke 0 agreements too, because a careful agent respects a good notes file. Within one long session, nothing slipped in any setup; agreements get lost <em>between</em> sessions. And the guard can be stricter than you meant: in 2 of 9 runs, CI blocked a change that broke nothing the benchmark checked, because a captured rule pinned a detail that had been stated. SeamSpec's difference is that its rules are tests, captured for you, enforced at commit and in CI, and changed only with your approval.</span>
@@ -1233,7 +1232,7 @@
         <header class="section__head section__head--center reveal">
           <p class="eyebrow">vs spec-first</p>
           <h2 id="compare-title">Specify, then build? Or build, and let the spec harden behind you.</h2>
-          <p>Tools such as Spec Kit, Kiro and OpenSpec take a spec-first approach: agree on the spec, then build to it. SeamSpec works the other way round: build, then capture what works as a spec.</p>
+          <p>Tools such as Spec Kit, OpenSpec and Kiro's spec mode take a spec-first approach: agree on the spec, then build to it. SeamSpec works the other way round: build, then capture what works as a spec.</p>
         </header>
         <div class="compare reveal" id="compare-table">
           <div class="compare__scroll">
@@ -1271,10 +1270,11 @@
         <div class="install reveal">
           <div class="install__intro">
             <p class="eyebrow">Install</p>
-            <h2 id="install-title">Almost there.</h2>
+            <h2 id="install-title">Try it on your project.</h2>
             <p>
-              SeamSpec v0.1 is built and tested, and in final checks before its first release. Today's PyPI package
-              still only reserves the name; the working release comes with the public repository.
+              SeamSpec 0.1.0 is out. You need Python 3.11+, <a href="https://docs.astral.sh/uv/" rel="noopener">uv</a> and git,
+              a project tested with pytest or vitest, and one of the four coding agents above. The
+              <a href="https://github.com/seamspec/seamspec/blob/main/docs/getting-started.md" rel="noopener">getting-started guide</a> goes from install to a team setup with CI.
             </p>
             <ul class="roadmap" aria-label="Roadmap">
               <li data-done>Package name and CLI command reserved</li>
@@ -1283,7 +1283,7 @@
               <li data-done>Cursor, VS Code Copilot and Antigravity, each tried hands-on</li>
               <li data-done>BRAINDUMP scratchpad with <code>/seamspec:drain</code>, and a CI workflow</li>
               <li data-done>Benchmarks: capture, a long session, and a second actor</li>
-              <li>Public repository and first release</li>
+              <li data-done>Public repository and first release, 0.1.0</li>
               <li>Next: more runners (jest, go test, cargo)</li>
             </ul>
             <div class="install__links">
@@ -1291,10 +1291,10 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.3 7 12 12l8.7-5M12 22V12"/></svg>
                 View on PyPI
               </a>
-              <span class="btn btn--soon" id="install-github-soon" aria-disabled="true">
+              <a class="btn btn--ghost" id="install-github-link" href="https://github.com/seamspec/seamspec" rel="noopener">
                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02a9.58 9.58 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2z"/></svg>
-                GitHub: coming soon
-              </span>
+                View on GitHub
+              </a>
             </div>
           </div>
 
@@ -1312,11 +1312,28 @@
               <p class="install__alt">or <code>pipx install seamspec</code> · requires Python 3.11+</p>
             </div>
             <div>
-              <span class="install__label">2 · say hello</span>
-              <pre class="output" id="install-output"><span style="color: var(--thread)">$</span> seamspec
-<b>seamspec 0.0.2</b> (pre-release)
-Executable specs for AI coding agents. Build first; every seam that works gets a spec.
-Under active development: https://seamspec.github.io</pre>
+              <span class="install__label">2 · set it up in your project</span>
+              <div class="cmd cmd--block" id="init-cmd">
+                <span class="prompt" aria-hidden="true">$</span>
+                <code>seamspec init</code>
+                <button class="copy" type="button" id="init-copy-btn" data-copy="seamspec init" aria-label="Copy setup command">
+                  <svg class="ic-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+                  <svg class="ic-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                </button>
+              </div>
+              <p class="install__alt">asks before it changes anything outside your project · add <code>--hosts cursor,vscode,antigravity</code> for the other tools</p>
+            </div>
+            <div>
+              <span class="install__label">3 · work as usual, then approve its rules</span>
+              <div class="cmd cmd--block" id="review-cmd">
+                <span class="prompt" aria-hidden="true">$</span>
+                <code>seamspec review</code>
+                <button class="copy" type="button" id="review-copy-btn" data-copy="seamspec review" aria-label="Copy review command">
+                  <svg class="ic-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+                  <svg class="ic-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                </button>
+              </div>
+              <p class="install__alt">say what must stay true, and the agent proposes it as a rule with a test · nothing is enforced until you approve it here</p>
             </div>
           </div>
         </div>
@@ -1333,6 +1350,7 @@ Under active development: https://seamspec.github.io</pre>
           places where code can be put under test without rewriting it.
         </p>
         <div class="footer__links">
+          <a href="https://github.com/seamspec/seamspec" id="footer-github" rel="noopener">GitHub</a>
           <a href="https://pypi.org/project/seamspec/" id="footer-pypi" rel="noopener">PyPI</a>
           <a href="https://www.apache.org/licenses/LICENSE-2.0" id="footer-license" rel="noopener">Apache-2.0</a>
           <span>© 2026 SeamSpec</span>
